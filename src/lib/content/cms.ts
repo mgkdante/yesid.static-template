@@ -5,6 +5,7 @@ import { pagesContract, postContract, siteTextContract } from './contract.ts';
 export const createCmsConfig = () => cmsConfig({
   repo: `mgkdante/${site.slug}`,
   loginOrigin: 'https://login.yesid.dev',
+  siteSlug: site.slug,
   locales: site.languages.map(({ code }) => code),
   defaultLocale: site.defaultLanguage,
   singletons: [

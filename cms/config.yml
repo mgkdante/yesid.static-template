@@ -4,8 +4,8 @@ backend:
   branch: main
   base_url: https://login.yesid.dev
   auth_endpoint: auth/popup
-  api_root: https://login.yesid.dev
-  graphql_api_root: https://login.yesid.dev
+  api_root: https://login.yesid.dev/yesid.static-template
+  graphql_api_root: https://login.yesid.dev/yesid.static-template
 media_folder: static/images/uploads
 public_folder: /images/uploads
 i18n:
