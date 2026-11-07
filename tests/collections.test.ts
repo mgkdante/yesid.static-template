@@ -2,9 +2,14 @@ import { expect, test } from 'bun:test';
 import { z } from 'zod';
 import { date, group, line, list, paragraph } from '@yesid/content-contract';
 import { createCatalog } from '../src/lib/collection-catalog.ts';
-import { site } from '../src/lib/config/site.ts';
+import { site, type SiteSettings } from '../src/lib/config/site.ts';
 import { defineCollection, loadCollections } from '../src/lib/content/collections.ts';
 
+const settings: SiteSettings = {
+  ...site,
+  defaultLanguage: 'fr',
+  languages: [{ code: 'fr', label: 'Français' }, { code: 'en', label: 'English' }, { code: 'es', label: 'Español' }]
+};
 const resources = defineCollection({
   name: 'resources', label: 'Resources', listing: 'resources',
   contract: z.strictObject({ name: line('Name'), summary: paragraph('Summary') }),
@@ -27,15 +32,15 @@ test('collection create, edit and delete update listings, routes and translation
   const pages = [{ id: 'resources', kind: 'fixed' as const, slugs: { fr: 'guides', en: 'resources', es: 'recursos' } }];
   const source = (name: string) => `---\nname: ${name}\nsummary: Help\n---\n`;
   const sources = { './resources/manual.fr.md': source('Guide'), './resources/manual.en.md': source('Manual') };
-  const created = createCatalog(site, pages, [resources], sources);
+  const created = createCatalog(settings, pages, [resources], sources);
   expect(created.map.path('resources:manual', 'en')).toBe('/en/resources/manual/');
   expect(created.listing('resources', 'fr')?.entries).toHaveLength(1);
   expect(created.map.alternates('resources:manual')).toHaveLength(2);
   expect(created.map.path('resources:manual', 'es')).toBeUndefined();
-  const edited = createCatalog(site, pages, [resources], { ...sources, './resources/manual.en.md': source('Handbook') });
+  const edited = createCatalog(settings, pages, [resources], { ...sources, './resources/manual.en.md': source('Handbook') });
   expect(edited.map.resolve('/en/resources/manual/')).toBeUndefined();
   expect(edited.map.switchTarget('/guides/guide/', 'en')).toBe('/en/resources/handbook/');
-  const removed = createCatalog(site, pages, [resources], {});
+  const removed = createCatalog(settings, pages, [resources], {});
   expect(removed.listing('resources', 'fr')?.entries).toHaveLength(0);
   expect(removed.map.find('resources:manual', 'fr')).toBeUndefined();
 });
@@ -68,7 +73,7 @@ test('collection identities stay separate and path collisions fail', () => {
   const entries = loadCollections([resources, other], { './resources/same.fr.md': source, './other/same.fr.md': source }, ['fr']);
   expect(new Set(entries.map(({ id }) => id)).size).toBe(2);
   const pages = [{ id: 'resources', kind: 'fixed' as const, slugs: { fr: 'guides', en: 'resources', es: 'recursos' } }];
-  expect(() => createCatalog(site, pages, [resources], { './resources/a.fr.md': source, './resources/b.fr.md': source })).toThrow('Duplicate page path');
+  expect(() => createCatalog(settings, pages, [resources], { './resources/a.fr.md': source, './resources/b.fr.md': source })).toThrow('Duplicate page path');
 });
 
 test('a collection can list its entries on each language home', () => {
@@ -78,7 +83,7 @@ test('a collection can list its entries on each language home', () => {
     './resources/manual.fr.md': '---\nname: Guide\nsummary: Help\n---\n',
     './resources/manual.en.md': '---\nname: Manual\nsummary: Help\n---\n'
   };
-  const catalog = createCatalog(site, pages, [definition], sources);
+  const catalog = createCatalog(settings, pages, [definition], sources);
   expect(catalog.map.path('resources:manual', 'fr')).toBe('/guide/');
   expect(catalog.map.path('resources:manual', 'en')).toBe('/en/manual/');
   expect(catalog.listing('home', 'fr')?.entries).toHaveLength(1);
