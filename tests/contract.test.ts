@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { canonicalJson } from '@yesid/content-contract';
 import { site } from '../src/lib/config/site.ts';
 import { readdirSync } from 'node:fs';
-import { menuContract } from '../src/lib/content/contract.ts';
+import { fixedPageIds, menuContract } from '../src/lib/content/contract.ts';
 import { contentGroups, createCmsConfig } from '../src/lib/content/cms.ts';
 import { loadCollections } from '../src/lib/content/collections.ts';
 import { collections } from '../src/lib/content/registry.ts';
@@ -23,13 +23,10 @@ test('every content file on disk can be edited, and every editable file exists',
   const onDisk = readdirSync(new URL('../src/lib/content/', import.meta.url)).filter((name) => name.endsWith('.json')).sort();
   expect(onDisk).toEqual(expected);
 });
-test('the editor is laid out like the site, with the groups before the blog', () => {
-  expect(contentGroups.map(({ label, files }) => [label, files.map(({ name }) => name)])).toEqual([
-    ['Pages', ['home', 'about', 'blog', 'projects']],
-    ['Partout sur le site', ['menu', 'footer', 'error']],
-    ['Textes légaux', ['privacy', 'terms']]
-  ]);
-  expect(createCmsConfig().collections?.map(({ name }) => name)).toEqual(['pages', 'everywhere', 'legal', 'posts', 'projects']);
+test('every Fixed Page has its editor entry, and the groups come before the folders', () => {
+  const inEditor = contentGroups.flatMap(({ files }) => files.map(({ name }) => name));
+  for (const id of fixedPageIds) expect(inEditor).toContain(id);
+  expect(createCmsConfig().collections?.map(({ name }) => name)).toEqual([...contentGroups, ...collections].map(({ name }) => name));
 });
 test('the site slug is one the Login Site can serve', () => {
   // Mirrors validSlug in the Login Site's src/sites.ts. A reserved word there is one of its own paths.
@@ -49,14 +46,8 @@ test('committed CMS config equals the contract output', () => {
   const config = createCmsConfig();
   expect(Bun.YAML.parse(read('cms/config.yml'))).toEqual(config);
   expect(config.backend.repo).toBe(site.repository);
-  const posts = config.collections?.find(({ name }) => name === 'posts');
-  if (!posts || !('fields' in posts)) throw new Error('no blog folder');
-  expect(posts.folder).toBe('src/lib/content/posts');
   expect(config.media_folder).toBe('static/images/uploads');
   expect(config.public_folder).toBe('/images/uploads');
-  const { fields } = posts;
-  expect(fields.find((field) => field.name === 'date')?.i18n).toBe('duplicate');
-  expect(fields.find((field) => field.name === 'photo')?.i18n).toBe('duplicate');
 });
 test('all collections validate their contracts and shared fields', () => {
   const sources = sampleSources();

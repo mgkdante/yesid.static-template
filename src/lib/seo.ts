@@ -46,7 +46,9 @@ export function pageSeo({ language, alternates, image }: PageSeoInput, settings:
   return {
     xDefault: alternates.find((alternate) => alternate.language === settings.defaultLanguage)?.url,
     ogLocale: current?.ogLocale,
-    ogLocaleAlternates: settings.languages.filter(({ code }) => code !== language).flatMap(({ ogLocale }) => ogLocale ?? []),
+    ogLocaleAlternates: settings.languages
+      .filter(({ code }) => code !== language && alternates.some((alternate) => alternate.language === code))
+      .flatMap(({ ogLocale }) => ogLocale ?? []),
     image: image ? { url: absolute(image) } : card
   };
 }
@@ -67,18 +69,19 @@ export interface LlmsPage {
   readonly description: string;
   readonly url: string;
 }
-const oneLine = (text: string) => text.replace(/\s+/g, ' ').trim();
+/** Keeps the Owner's wording literal in a Markdown file, on one line. */
+const literal = (text: string) => text.replace(/\s+/g, ' ').trim().replace(/[\\`*_[\]<>]/g, '\\$&');
 const contactLines = ({ phone, email, serviceArea }: BusinessFacts) => [
-  ...(phone ? [`- Phone: ${phone}`] : []),
-  ...(email ? [`- Email: ${email}`] : []),
-  ...(serviceArea ? [`- Service area: ${serviceArea}`] : [])
+  ...(phone ? [`- Phone: ${literal(phone)}`] : []),
+  ...(email ? [`- Email: ${literal(email)}`] : []),
+  ...(serviceArea ? [`- Service area: ${literal(serviceArea)}`] : [])
 ];
 export function llmsText(settings: SiteSettings, pages: readonly LlmsPage[]): string {
   const sections = settings.languages.flatMap(({ code, label }) => {
     const lines = pages.filter(({ language }) => language === code).map(({ title, description, url }) =>
-      `- [${oneLine(title).replaceAll('[', '(').replaceAll(']', ')')}](${url}): ${oneLine(description)}`);
+      `- [${literal(title)}](${url}): ${literal(description)}`);
     return lines.length ? [[`## ${label}`, ...lines].join('\n')] : [];
   });
   const contact = contactLines(settings.business);
-  return [`# ${settings.business.name}`, ...sections, ...(contact.length ? [['## Contact', ...contact].join('\n')] : [])].join('\n\n') + '\n';
+  return [`# ${literal(settings.business.name)}`, ...sections, ...(contact.length ? [['## Contact', ...contact].join('\n')] : [])].join('\n\n') + '\n';
 }
