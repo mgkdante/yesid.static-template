@@ -43,35 +43,19 @@ A repository in another account needs its own installation there, with its own I
 
 Keep the App's permissions as they are: contents and metadata, never workflows. The Login Site asks GitHub for a token limited to this one repository on each use. The App itself can reach every selected repository.
 
-## 4. Add the site record
+## 4. Add the site and the Owner
 
-IT runs this against the Login Site's D1 database, with a backup kept first. The Login Site's README owns the operating details.
+No one can sign up alone. In the `yesid.login` repository, `scripts/new-client.ts` generates the SQL for the site and its first person. Follow "Add a site and a person" in its README, which owns the commands, the backup, the review and the check. Give it this site's slug, owner, repository, `main`, a label, the installation ID, the Owner's address and `--role owner`.
 
-```sql
-INSERT INTO site (slug, owner, repo, branch, label, installation_id)
-VALUES ('<slug>', '<owner>', '<repo>', 'main', '<label shown to people>', '<installation-id>');
-```
+Write the generated SQL to a temporary file outside any repository, because it holds a real address.
 
-## 5. Add the Owner and IT
+## 5. Add IT
 
-No one can sign up alone. Use a lowercase address. Look up an existing person first, and reuse their ID:
+The script creates the site, so it only runs once per site. Add IT, or anyone else who should never expire, with a membership row, against the same database and with the same care:
 
 ```sql
-SELECT id FROM user WHERE email = '<address>';
-```
-
-For someone new:
-
-```sql
-INSERT INTO user (id, name, email, emailVerified, createdAt, updatedAt)
-VALUES ('<unique-internal-id>', '<display name>', '<address>', 0, datetime('now'), datetime('now'));
-```
-
-Then give each their role:
-
-```sql
-INSERT INTO membership (site_slug, user_id, role) VALUES ('<slug>', '<owner-user-id>', 'owner');
-INSERT INTO membership (site_slug, user_id, role) VALUES ('<slug>', '<it-user-id>', 'it');
+INSERT INTO membership (site_slug, user_id, role, confirmed_at)
+SELECT '<slug>', id, 'it', datetime('now') FROM user WHERE email = '<lowercase-address>';
 ```
 
 Owner and IT access never expires. The Owner adds and removes Employees at `login.yesid.dev/<slug>/people`.
