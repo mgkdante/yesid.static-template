@@ -6,13 +6,13 @@ The sample business is fake. `example.invalid` cannot be a production destinatio
 
 ## Start a client site
 
-1. Create a private client repository from this starter. Install Bun 1.4.4 and Node 24 (`.node-version` pins the tested patch). Run `bun install --frozen-lockfile`.
-2. Edit `src/lib/config/site.ts`: repository slug, public origin, Active Languages, default language and Business Facts. Facts appear once here and feed visible contact details and JSON-LD. Omit unknown facts. Update the Worker name in `wrangler.jsonc` to the slug with dots replaced by hyphens; tests check agreement.
+1. Create a private client repository from this starter with `gh repo create <owner>/<repo> --private --template mgkdante/yesid.static-template --clone`. Install Bun 1.4.4 and Node 24 (`.node-version` pins the tested patch). Run `bun install --frozen-lockfile`.
+2. Edit `src/lib/config/site.ts`: site slug, repository, public origin, Active Languages, default language and Business Facts. Facts appear once here and feed visible contact details and JSON-LD. Omit unknown facts. Update the Worker name in `wrangler.jsonc` to the slug with dots replaced by hyphens; tests check agreement. Publishing refuses the sample `example.invalid` origin.
 3. Fill `src/lib/content/<name>.<language>.json`, one file per place on the site. `contentGroups` in `src/lib/content/cms.ts` lists them and lays out the editor like the site: Pages, everything seen on every page (menu, footer, error page), and legal pages. Define the client's editable content shape in `contract.ts`, then run `bun run content:format` and `bun run cms:config`. Commit content and `cms/config.yml` together. Structure is checked; the Owner controls wording.
-4. Replace `src/lib/sections/` with the client's Custom Design. Header, page, footer and error markup live there. Admin markup lives in its route. Keep the content, Site Map and SEO interfaces intact. No rendered pages use `@yesid/tokens`, `@yesid/ui` or `@yesid/motion`.
+4. Replace `src/lib/sections/` with the client's Custom Design. Header, page, footer and error markup live there. Admin markup lives in its route. Keep the content, Site Map and SEO interfaces intact. This starter depends on no design system: Foundation code carries no design, and a test keeps `@yesid/content-contract` as its only `@yesid` package.
 5. Add Fixed Pages to the contract and the `fixedPages` list in `src/lib/site-map.ts`. All paths, navigation, canonical URLs, language switches, prerender entries, hreflang and sitemap output come from that map. A slug change needs a redirect before publication.
 6. To add a language, add its code and label to settings, its Fixed Page and shared JSON files and a translated slug for every Fixed Page. No matcher, route, switcher, sitemap or error-page language list needs editing. Missing fixed content or slugs fail the build. An untranslated Blog Post is simply absent from that language.
-7. Register the client separately in the Login Site. `/admin/` uses a noindex meta refresh and visible link to `https://login.yesid.dev/<slug>/`. There is no local CMS, authentication code or frontend secret. Owners and Employees need no GitHub account. Do not test the sample login URL.
+7. Connect the client to the Login Site by following [docs/connect-a-client.md](docs/connect-a-client.md). `/admin/` uses a noindex meta refresh and visible link to `https://login.yesid.dev/<slug>/`. There is no local CMS, authentication code or frontend secret. Owners and Employees need no GitHub account. Do not test the sample login URL.
 8. Run `bun run check`, `bun run test`, and `bun run build`. Tests build first so generated-output checks cannot pass against stale HTML. `bun test tests` runs just the test cases when a current build already exists. `bun run dev` opens the development server when needed.
 9. Have IT create the client's one assets-only Worker separately. Add repository secrets named `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` through GitHub settings. The token must be limited to that existing Worker. Set `DEPLOY_ENABLED=true` only when deployment is authorized. The deploy workflow checks and builds before invoking the pinned Wrangler with an explicit Worker name. It never enumerates Workers or manages account resources. This task did not run it.
 
@@ -45,7 +45,7 @@ Blog retains title, description, date, optional cover photo, photo description a
 
 Markdown becomes HTML at build time through Marked with raw HTML removed, followed by the sanitize-html allowlist. Photos upload to `static/images/uploads` and are served from `/images/uploads`.
 
-**Login Site integration is not verified:** its inspected local source at `site-editor-login/src/sites.ts` currently allows Markdown writes only in `src/lib/content/posts/`. A Projects or other collection save therefore needs a separately reviewed Login Site allowlist change. A dummy site also needs an authorized site registration, repository App access and a signed-in member. The template tests simulate content create/edit/delete through the public catalog interface; they do not prove Sveltia-to-GitHub writes. Do not reuse a real client's domain or membership to test this. Keep this repository's deployment disabled while testing dummy content.
+**Login Site rules:** a save only reaches the repository when its path matches `CONTENT_FILES` in the `yesid.login` repository. A collection folder those rules don't allow can't save. The template tests cover content create, edit and delete through the public catalog interface. They don't prove a real save through the live Login Site, so do not reuse a real client's domain or membership to test one. Keep this repository's deployment disabled while testing dummy content.
 
 
 ## Link previews, icons and structured data
@@ -59,7 +59,7 @@ Set these in `config/site.ts`. All are optional, and nothing is emitted for a va
 
 ## Static output and 404 limit
 
-The strict static adapter writes complete pages under `build/`, plus `sitemap.xml`, `robots.txt`, `llms.txt`, `admin/index.html` and exactly `404.html`. Cloudflare configuration uses `404-page` handling. Client-side rendering is disabled, so content and language navigation work without JavaScript.
+The strict static adapter writes complete pages under `build/`, plus `sitemap.xml`, `robots.txt`, `llms.txt`, `admin/index.html` and exactly `404.html`. Cloudflare configuration uses `404-page` handling. Client-side rendering is disabled, so content and language navigation work without JavaScript. A Custom Design that needs it changes `csr` in `src/routes/+layout.ts`.
 
 A single static `404.html` cannot select a language from an unknown request URL without JavaScript or request-time logic. The file therefore presents every configured language's message and correct home link, marked with that language. Its document language is the default. This is the explicit limitation of the assets-only, single-file requirement. No request-time Worker or fallback JavaScript was added.
 
@@ -77,6 +77,6 @@ A single static `404.html` cannot select a language from an unknown request URL 
 
 No `.env.example` is needed. Deployment credentials belong only in GitHub secrets. A failed check/build prevents asset upload. For a bad content edit, revert the responsible commit, run the checks and republish through the authorized workflow. Test restore and Cloudflare rollback during the first real client's launch, not against this sample.
 
-Optional `@yesid/i18n-core` and `@yesid/seo-kit` are not installed: the Site Map already owns routing, while seo-kit adds token/image-generation peers this Foundation does not need. Their v0.36.0 guide was read without modifying the shared repository.
+`@yesid/i18n-core` and `@yesid/seo-kit` from `yesid.design` are deliberately not installed: the Site Map already owns routing, and seo-kit brings token and image-generation peers this Foundation does not need.
 
 Potential future packages, after another client proves the interfaces: the Site Map and translation availability model, safe Markdown/post ingestion, facts-only SEO and static-output verification helpers. Nothing is extracted here. The Content Contract is already a released package.

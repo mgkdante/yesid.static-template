@@ -25,8 +25,8 @@ jobs:
           bun-version-file: .bun-version
       - run: bun install --frozen-lockfile
       - run: bun run check
+      # Builds first, so its tests read the same output.
       - run: bun run test
-      - run: bun run build
       - name: Upload only this Worker's assets
         run: bun scripts/deploy.ts
         env:

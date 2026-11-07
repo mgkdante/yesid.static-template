@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { existsSync } from 'node:fs';
-import { loginUrl, site, workerName } from '../src/lib/config/site.ts';
+import { assertPublishable, loginUrl, site, workerName } from '../src/lib/config/site.ts';
 import { escapeXml } from '../src/lib/seo.ts';
 import { read, sampleCatalog } from './helpers.ts';
 const map = sampleCatalog().map;
@@ -50,6 +50,15 @@ test('admin uses a noindex meta refresh and visible login link', () => {
   expect(html).toContain(`content="0;url=${loginUrl}"`);
   expect(html).toContain(`href="${loginUrl}"`);
   expect(html).toContain('content="noindex"');
+});
+test('the sample address cannot be published', () => {
+  expect(() => assertPublishable({ origin: 'https://example.invalid' })).toThrow('real origin');
+  expect(() => assertPublishable({ origin: 'https://client.example.test' })).not.toThrow();
+});
+test('the Foundation carries no design system', () => {
+  const { dependencies, devDependencies } = JSON.parse(read('package.json'));
+  const yesid = Object.keys({ ...dependencies, ...devDependencies }).filter((name) => name.startsWith('@yesid/'));
+  expect(yesid).toEqual(['@yesid/content-contract']);
 });
 test('deployment settings target the Worker derived from site slug', () => {
   const config = JSON.parse(read('wrangler.jsonc'));

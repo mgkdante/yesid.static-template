@@ -1,6 +1,6 @@
 # Language
 
-Terms carried from Vitreva, limited to this repository's scope.
+Terms used across this repository.
 
 **Owner**: The person responsible for a business's site, who decides what it says and who may edit it.
 

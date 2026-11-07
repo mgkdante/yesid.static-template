@@ -31,6 +31,12 @@ test('the editor is laid out like the site, with the groups before the blog', ()
   ]);
   expect(createCmsConfig().collections?.map(({ name }) => name)).toEqual(['pages', 'everywhere', 'legal', 'posts', 'projects']);
 });
+test('the site slug is one the Login Site can serve', () => {
+  // Mirrors validSlug in the Login Site's src/sites.ts. A reserved word there is one of its own paths.
+  const reserved = ['auth', 'api', 'admin', 'login', 'editor', 'account', 'privacy', 'terms'];
+  expect(site.slug).toMatch(/^[a-z0-9][a-z0-9.-]{0,62}$/);
+  expect(reserved).not.toContain(site.slug);
+});
 test('structure is checked while owner wording stays unrestricted', () => {
   const source = JSON.parse(read(`src/lib/content/menu.${site.defaultLanguage}.json`));
   expect(menuContract.safeParse({ ...source, skip: 'A'.repeat(10000) }).success).toBe(true);
@@ -42,7 +48,7 @@ test('structure is checked while owner wording stays unrestricted', () => {
 test('committed CMS config equals the contract output', () => {
   const config = createCmsConfig();
   expect(Bun.YAML.parse(read('cms/config.yml'))).toEqual(config);
-  expect(config.backend.repo).toBe(`mgkdante/${site.slug}`);
+  expect(config.backend.repo).toBe(site.repository);
   const posts = config.collections?.find(({ name }) => name === 'posts');
   if (!posts || !('fields' in posts)) throw new Error('no blog folder');
   expect(posts.folder).toBe('src/lib/content/posts');
