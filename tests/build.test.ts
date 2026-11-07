@@ -50,19 +50,16 @@ test('deployment settings target the Worker derived from site slug', () => {
   expect(config.assets).toEqual({ directory: './build', not_found_handling: '404-page' });
 });
 
-test('Blog and Projects have distinct listing and detail markup', () => {
+test('available collection entries use their distinct detail markup', () => {
   const catalog = sampleCatalog();
-  for (const { code } of site.languages) {
-    for (const collection of ['posts', 'projects']) {
-      const entry = catalog.entries.find((item) => item.collection === collection && item.language === code)!;
-      const path = catalog.map.path(entry.id, code)!;
-      const html = read(`build${path}index.html`);
-      expect(html).toContain('<article>');
-      if (entry.collection === 'posts') expect(html).toContain(`<time datetime="${entry.content.date}">`);
-      if (entry.collection === 'projects') {
-        expect(html).not.toContain('<time');
-        expect(html).toContain('<ul>');
-      }
+  for (const entry of catalog.entries) {
+    const path = catalog.map.path(entry.id, entry.language)!;
+    const html = read(`build${path}index.html`);
+    expect(html).toContain('<article>');
+    if (entry.collection === 'posts') expect(html).toContain(`<time datetime="${entry.content.date}">`);
+    if (entry.collection === 'projects') {
+      expect(html).not.toContain('<time');
+      expect(html).toContain('<ul>');
     }
   }
 });

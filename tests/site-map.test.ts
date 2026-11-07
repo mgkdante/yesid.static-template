@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { site } from '../src/lib/config/site.ts';
 import { createSiteMap, fixedPages } from '../src/lib/site-map.ts';
-import { sampleCatalog, sampleSources } from './helpers.ts';
+import { sampleCatalog } from './helpers.ts';
 
 test('translated slugs resolve and switch the same page', () => {
   const map = createSiteMap(site, fixedPages);
@@ -24,7 +24,9 @@ test('another language needs only settings and translated slugs', () => {
   expect(() => createSiteMap(settings, fixedPages)).toThrow('Missing fixed slug');
 });
 test('an untranslated post never advertises a missing target', () => {
-  const sources = Object.fromEntries(Object.entries(sampleSources()).filter(([file]) => file.endsWith(`.${site.defaultLanguage}.md`)));
+  const sources = {
+    [`./posts/fixture.${site.defaultLanguage}.md`]: "---\ntitle: Entry\ndescription: Example\ndate: '2026-01-01'\nphoto: ''\nphotoAlt: Example\n---\nBody"
+  };
   const catalog = sampleCatalog(sources);
   const map = catalog.map;
   const first = catalog.entries[0];

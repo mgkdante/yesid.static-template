@@ -51,7 +51,10 @@ test('all collections validate their contracts and shared fields', () => {
   const sources = sampleSources();
   const languages = site.languages.map(({ code }) => code);
   expect(() => loadCollections(collections, sources, languages)).not.toThrow();
-  const file = Object.keys(sources).find((file) => file.startsWith('./posts/'))!;
-  const invalid = { ...sources, [file]: sources[file].replace(/date:.*\n/, "date: '2000-01-01'\n") };
+  const fixture = (date: string) => `---\ntitle: Example\ndescription: Example\ndate: '${date}'\nphoto: ''\nphotoAlt: Example\n---\nBody`;
+  const invalid = {
+    './posts/fixture.fr.md': fixture('2026-01-01'),
+    './posts/fixture.en.md': fixture('2026-01-02')
+  };
   expect(() => loadCollections(collections, invalid, languages)).toThrow('Shared fields differ');
 });

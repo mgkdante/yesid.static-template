@@ -18,8 +18,8 @@ export function createCatalog<const Definitions extends readonly CollectionDefin
     id, kind: 'entry', slugs: Object.fromEntries(entries.filter((entry) => entry.id === id).map((entry) => {
       const definition = definitions.find(({ name }) => name === entry.collection)!;
       const parent = pages.find((page) => page.id === definition.listing)?.slugs[entry.language];
-      if (!parent) throw new Error(`Missing collection path: ${entry.collection}/${entry.language}`);
-      return [entry.language, `${parent}/${entry.slug}`];
+      if (parent === undefined) throw new Error(`Missing collection path: ${entry.collection}/${entry.language}`);
+      return [entry.language, [parent, entry.slug].filter(Boolean).join('/')];
     }))
   }));
   const map = createSiteMap(settings, [...pages, ...entryPages]);

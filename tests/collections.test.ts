@@ -70,3 +70,16 @@ test('collection identities stay separate and path collisions fail', () => {
   const pages = [{ id: 'resources', kind: 'fixed' as const, slugs: { fr: 'guides', en: 'resources', es: 'recursos' } }];
   expect(() => createCatalog(site, pages, [resources], { './resources/a.fr.md': source, './resources/b.fr.md': source })).toThrow('Duplicate page path');
 });
+
+test('a collection can list its entries on each language home', () => {
+  const definition = { ...resources, listing: 'home' };
+  const pages = [{ id: 'home', kind: 'fixed' as const, slugs: { fr: '', en: '', es: '' } }];
+  const sources = {
+    './resources/manual.fr.md': '---\nname: Guide\nsummary: Help\n---\n',
+    './resources/manual.en.md': '---\nname: Manual\nsummary: Help\n---\n'
+  };
+  const catalog = createCatalog(site, pages, [definition], sources);
+  expect(catalog.map.path('resources:manual', 'fr')).toBe('/guide/');
+  expect(catalog.map.path('resources:manual', 'en')).toBe('/en/manual/');
+  expect(catalog.listing('home', 'fr')?.entries).toHaveLength(1);
+});
