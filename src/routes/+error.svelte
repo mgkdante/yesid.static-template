@@ -6,4 +6,4 @@
   let language = $derived(languageFromPath(page.url.pathname));
 </script>
 <svelte:head><meta name="robots" content="noindex" /><title>{content[language].text.error.title}</title></svelte:head>
-<ErrorSection text={content[language].text.error} home={siteMap.path('home', language)!} />
+<main id="main"><ErrorSection text={content[language].text.error} home={siteMap.path('home', language)!} /></main>

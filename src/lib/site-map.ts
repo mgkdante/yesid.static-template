@@ -25,7 +25,7 @@ export function createSiteMap(settings: SiteSettings, definitions: readonly Page
     }
     if (slug && !/^[\p{L}\p{N}-]+(?:\/[\p{L}\p{N}-]+)*$/u.test(slug)) throw new Error(`Invalid slug: ${slug}`);
     const prefix = language === settings.defaultLanguage ? '' : `${language}/`;
-    const path = `/${prefix}${slug ? `${slug}/` : ''}`;
+    const path = `/${prefix}${slug ? `${slug.split('/').map(encodeURIComponent).join('/')}/` : ''}`;
     return [{ id: page.id, kind: page.kind, language, path, url: new URL(path, settings.origin).href }];
   }));
   if (new Set(rows.map(({ path }) => path)).size !== rows.length) throw new Error('Duplicate page path');

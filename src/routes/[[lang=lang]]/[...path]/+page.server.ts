@@ -6,7 +6,7 @@ import type { PageServerLoad } from './$types';
 
 export const entries = () => siteMap.rows.map(({ path, language }) => ({
   lang: language === site.defaultLanguage ? undefined : language,
-  path: path.split('/').filter(Boolean).slice(language === site.defaultLanguage ? 0 : 1).join('/')
+  path: path.split('/').filter(Boolean).slice(language === site.defaultLanguage ? 0 : 1).map(decodeURIComponent).join('/')
 }));
 export const load: PageServerLoad = ({ url }) => {
   const row = siteMap.resolve(url.pathname);

@@ -37,3 +37,10 @@ test('ambiguous paths and identities fail before publication', () => {
   expect(() => createSiteMap(site, [...fixedPages, fixedPages[0]])).toThrow();
   expect(() => createSiteMap(site, [{ id: 'x', kind: 'post', slugs: { fr: '../admin' } }])).toThrow('Invalid slug');
 });
+
+test('non-Latin slugs resolve from a real URL pathname', () => {
+  const map = createSiteMap(site, [{ id: 'unicode', kind: 'post', slugs: { [site.defaultLanguage]: 'blog/東京' } }]);
+  const row = map.find('unicode', site.defaultLanguage)!;
+  expect(map.resolve(new URL(row.url).pathname)?.id).toBe('unicode');
+  expect(map.switchTarget(new URL(row.url).pathname, site.defaultLanguage)).toBe(row.path);
+});

@@ -5,8 +5,11 @@
   import Seo from '#lib/components/Seo.svelte';
 </script>
 <Seo title={content[site.defaultLanguage].text.error.title} description={content[site.defaultLanguage].text.error.description} canonical={`${site.origin}/404.html`} noindex />
+<main id="main">
 {#each site.languages as language (language.code)}
   <section lang={language.code}>
     <ErrorSection text={content[language.code].text.error} home={siteMap.path('home', language.code)!} />
   </section>
 {/each}
+
+</main>

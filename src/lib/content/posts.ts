@@ -13,9 +13,9 @@ export function parsePost(file: string, source: string, languages: readonly stri
   const front = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/.exec(source);
   if (!match || !front || !languages.includes(match[2])) throw new Error(`Invalid post file: ${file}`);
   const content = postContract.parse({ ...parse(front[1]), body: front[2].trim() });
-  const slug = content.title.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase()
+  const titleSlug = content.title.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '');
-  if (!slug) throw new Error(`Post title needs a URL segment: ${file}`);
+  const slug = titleSlug || `post-${Array.from(match[1]).map((char) => char.codePointAt(0)!.toString(16)).join('-')}`;
   return { ...content, id: `post:${match[1]}`, language: match[2], slug, html: renderMarkdown(content.body) };
 }
 export function validateSharedPosts(posts: readonly Post[]): void {
