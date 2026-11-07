@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test';
 import { canonicalJson } from '@yesid/content-contract';
 import { site } from '../src/lib/config/site.ts';
 import { readdirSync } from 'node:fs';
+import { join, relative } from 'node:path';
 import { fixedPageIds, menuContract } from '../src/lib/content/contract.ts';
 import { contentGroups, createCmsConfig } from '../src/lib/content/cms.ts';
 import { loadCollections } from '../src/lib/content/collections.ts';
@@ -22,6 +23,23 @@ test('every content file on disk can be edited, and every editable file exists',
   const expected = site.languages.flatMap(({ code }) => contentFiles.map(({ name }) => `${name}.${code}.json`)).sort();
   const onDisk = readdirSync(new URL('../src/lib/content/', import.meta.url)).filter((name) => name.endsWith('.json')).sort();
   expect(onDisk).toEqual(expected);
+});
+test('no content sits where the build cannot read it', () => {
+  // The build only reads root JSON and <collection>/<entry>.<language>.md, so anything else would silently never publish.
+  const root = 'src/lib/content';
+  const languages = site.languages.map(({ code }) => code);
+  const folders: string[] = collections.map(({ name }) => name);
+  const readable = (path: string) => {
+    const parts = path.split('/');
+    if (parts.length === 1) return path.endsWith('.json');
+    const language = /\.([^.]+)\.md$/.exec(path)?.[1];
+    return parts.length === 2 && folders.includes(parts[0]) && language !== undefined && languages.includes(language);
+  };
+  const files = readdirSync(root, { recursive: true, withFileTypes: true }).filter((entry) => entry.isFile())
+    .map((entry) => relative(root, join(entry.parentPath, entry.name)).replaceAll('\\', '/'))
+    .filter((path) => !path.endsWith('.ts') && !path.split('/').at(-1)!.startsWith('.'));
+  expect(files.length).toBeGreaterThan(0);
+  expect(files.filter((path) => !readable(path))).toEqual([]);
 });
 test('every Fixed Page has its editor entry, and the groups come before the folders', () => {
   const inEditor = contentGroups.flatMap(({ files }) => files.map(({ name }) => name));

@@ -14,7 +14,7 @@ The sample business is fake. `example.invalid` cannot be a production destinatio
 6. To add a language, add its code and label to settings, its Fixed Page and shared JSON files and a translated slug for every Fixed Page. No matcher, route, switcher, sitemap or error-page language list needs editing. Missing fixed content or slugs fail the build. An untranslated Blog Post is simply absent from that language.
 7. Connect the client to the Login Site by following [docs/connect-a-client.md](docs/connect-a-client.md). `/admin/` uses a noindex meta refresh and visible link to `https://login.yesid.dev/<slug>/`. There is no local CMS, authentication code or frontend secret. Owners and Employees need no GitHub account. Do not test the sample login URL.
 8. Run `bun run check`, `bun run test`, and `bun run build`. Tests build first so generated-output checks cannot pass against stale HTML. `bun test tests` runs just the test cases when a current build already exists. `bun run dev` opens the development server when needed.
-9. Have IT create the client's one assets-only Worker separately. Add repository secrets named `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` through GitHub settings. The token must be limited to that existing Worker. Set `DEPLOY_ENABLED=true` only when deployment is authorized. The deploy workflow checks and builds before invoking the pinned Wrangler with an explicit Worker name. It never enumerates Workers or manages account resources. This task did not run it.
+9. Have IT create the client's one assets-only Worker separately. Add repository secrets named `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` through GitHub settings. The token must be limited to that existing Worker. Set `DEPLOY_ENABLED=true` only when deployment is authorized. The deploy workflow checks and builds `main` in a job with no Cloudflare secrets, then a second job installs without dependency scripts and invokes the pinned Wrangler with an explicit Worker name on that exact output. It never enumerates Workers or manages account resources. A failure keeps the previous site up and opens an issue titled `Publishing failed`, assigned to the repository owner. This workflow has never run a real upload from this repository; the same design runs on the pioneer site.
 
 ## Repeatable collections
 
@@ -61,7 +61,7 @@ Set these in `config/site.ts`. All are optional, and nothing is emitted for a va
 
 ## Static output and 404 limit
 
-The strict static adapter writes complete pages under `build/`, plus `sitemap.xml`, `robots.txt`, `llms.txt`, `admin/index.html` and exactly `404.html`. Cloudflare configuration uses `404-page` handling. Client-side rendering is disabled, so content and language navigation work without JavaScript. A Custom Design that needs it changes `csr` in `src/routes/+layout.ts`.
+The strict static adapter writes complete pages under `build/`, plus `sitemap.xml`, `robots.txt`, `llms.txt`, `admin/index.html` and exactly `404.html`. Cloudflare configuration uses `404-page` handling. Client-side rendering is disabled, so content and language navigation work without JavaScript. A Custom Design that needs it changes `csr` in `src/routes/+layout.ts`, and the test `no built page runs JavaScript` in `tests/build.test.ts`, which fails on purpose until then.
 
 A single static `404.html` cannot select a language from an unknown request URL without JavaScript or request-time logic. The file therefore presents every configured language's message and correct home link, marked with that language. Its document language is the default. This is the explicit limitation of the assets-only, single-file requirement. No request-time Worker or fallback JavaScript was added.
 
@@ -77,7 +77,7 @@ A single static `404.html` cannot select a language from an unknown request URL 
 - `sections/`: replaceable Custom Design markup.
 - `.github/workflows/`: CI and the separately gated deployment job. Every action is pinned by SHA; checkout retains no credentials.
 
-No `.env.example` is needed. Deployment credentials belong only in GitHub secrets. A failed check/build prevents asset upload. For a bad content edit, revert the responsible commit, run the checks and republish through the authorized workflow. Test restore and Cloudflare rollback during the first real client's launch, not against this sample.
+No `.env.example` is needed. Deployment credentials belong only in GitHub secrets. A failed check or build prevents asset upload and opens the failure issue. For a bad content edit, revert the responsible commit, run the checks and republish through the authorized workflow. Test restore and Cloudflare rollback during the first real client's launch, not against this sample.
 
 `@yesid/i18n-core` and `@yesid/seo-kit` from `yesid.design` are deliberately not installed: the Site Map already owns routing, and seo-kit brings token and image-generation peers this Foundation does not need.
 

@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { assertPublishable, loginUrl, site, workerName } from '../src/lib/config/site.ts';
 import { escapeXml } from '../src/lib/seo.ts';
 import { fixedPages } from '../src/lib/site-map.ts';
@@ -13,13 +13,23 @@ for (const row of map.rows) {
     expect(html).toContain(`<link rel="canonical" href="${row.url}"`);
     expect(html).toContain('<h1>');
     expect(html).toContain('property="og:url"');
-    expect(html).not.toContain('type="module"');
     for (const alternate of map.alternates(row.id)) {
       expect(html).toContain(`hreflang="${alternate.language}" href="${alternate.url}"`);
       expect(html).toContain(`href="${alternate.path}" hreflang="${alternate.language}"`);
     }
   });
 }
+test('no built page runs JavaScript', () => {
+  // A Custom Design that needs JavaScript turns on `csr` in src/routes/+layout.ts and changes this test on purpose.
+  const pages = (readdirSync('build', { recursive: true }) as string[]).filter((file) => file.endsWith('.html'));
+  expect(pages.length).toBeGreaterThanOrEqual(map.rows.length);
+  for (const file of pages) {
+    const html = read(`build/${file}`);
+    const scripts = [...html.matchAll(/<script\b[^>]*>/gi)].map(([tag]) => tag).filter((tag) => tag !== '<script type="application/ld+json">');
+    expect({ file, scripts }).toEqual({ file, scripts: [] });
+    expect(html).not.toContain('rel="modulepreload"');
+  }
+});
 test('build includes only real page URLs in its sitemap', () => {
   const xml = read('build/sitemap.xml');
   expect([...xml.matchAll(/<loc>/g)]).toHaveLength(map.rows.length);
