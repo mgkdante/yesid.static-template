@@ -17,4 +17,4 @@ Custom Design belongs in `src/lib/sections/`; keep routing, content and SEO inde
 
 Keep files focused, typically under 400 lines and always under 800. Functions stay under 50 lines. Use immutable updates, explicit errors and short comments. No app `console.log`. Never use em dashes.
 
-Keep the repository private. Never read or commit secrets. Never deploy, create Cloudflare resources, modify neighboring repositories or contact the Login Site without task-specific authorization. The deploy job stays gated by `DEPLOY_ENABLED`. Blog saves need a separate Login Site update owned elsewhere.
+Keep the repository private. Never read or commit secrets. Never deploy, create Cloudflare resources, modify neighboring repositories or contact the Login Site without task-specific authorization. The deploy job stays gated by `DEPLOY_ENABLED`. Saved content paths must match the Login Site's file rules, owned in its repository. Connecting a client: `docs/connect-a-client.md`.

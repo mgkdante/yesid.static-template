@@ -28,7 +28,10 @@ export interface SiteIcon {
   readonly sizes?: string;
 }
 export interface SiteSettings {
+  /** This site's name on the Login Site. */
   readonly slug: string;
+  /** `owner/name` of this site's GitHub repository. */
+  readonly repository: string;
   readonly origin: string;
   readonly languages: readonly SiteLanguage[];
   readonly defaultLanguage: string;
@@ -39,6 +42,7 @@ export interface SiteSettings {
 
 export const site: SiteSettings = {
   slug: 'yesid.static-template',
+  repository: 'mgkdante/yesid.static-template',
   origin: 'https://example.invalid',
   languages: [
     { code: 'fr', label: 'Français', ogLocale: 'fr_CA' },
@@ -57,5 +61,9 @@ export const site: SiteSettings = {
 
 export const loginUrl = `https://login.yesid.dev/${site.slug}/`;
 export const workerName = (slug: string) => slug.replaceAll('.', '-');
+/** The sample address must never reach a real host. */
+export function assertPublishable({ origin }: Pick<SiteSettings, 'origin'>): void {
+  if (new URL(origin).hostname.endsWith('.invalid')) throw new Error(`Set a real origin in site.ts before publishing, not ${origin}`);
+}
 export const languageFromPath = (path: string, settings = site) =>
   settings.languages.find(({ code }) => code === path.split('/')[1])?.code ?? settings.defaultLanguage;

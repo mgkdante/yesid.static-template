@@ -42,7 +42,7 @@ export const contentGroups: readonly ContentFileGroup[] = [
 ];
 
 export const createCmsConfig = () => cmsConfig({
-  repo: `mgkdante/${site.slug}`,
+  repo: site.repository,
   loginOrigin: 'https://login.yesid.dev',
   siteSlug: site.slug,
   locales: site.languages.map(({ code }) => code),
