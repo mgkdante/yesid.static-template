@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { readdirSync } from 'node:fs';
 import { parse } from 'yaml';
 import { publish } from '../scripts/deploy.ts';
-import { handleMissingFile } from '../src/lib/prerender.ts';
+import { handleMissingFile, prerenderPolicy } from '../src/lib/prerender.ts';
 import { read } from './helpers.ts';
 
 interface Step {
@@ -142,9 +142,10 @@ test('a link or photo missing from Owner content warns, and any other build fail
     console.warn = warn;
   }
   expect(() => handleMissingFile({ status: 500, message: 'broken' })).toThrow('broken');
-  const config = read('vite.config.ts');
-  expect(config).toContain('handleHttpError: handleMissingFile');
-  expect(config).toContain("handleMissingId: 'warn'");
+  expect(prerenderPolicy).toEqual({ handleHttpError: handleMissingFile, handleMissingId: 'warn' });
+  const config = read('vite.config.ts').replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
+  expect(config).toContain('...prerenderPolicy');
+  expect(config).not.toMatch(/handleHttpError|handleMissingId/);
 });
 
 test('the built site carries its security headers', () => {

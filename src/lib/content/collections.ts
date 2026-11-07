@@ -49,10 +49,20 @@ function readDocument(file: string, source: string, languages: readonly string[]
   return { key: identity[1], language: identity[2], front, body: document[2].trim() };
 }
 
+const MAX_SLUG_BYTES = 80;
+const byteLength = (text: string) => new TextEncoder().encode(text).length;
+/** A title can be any length, but an address becomes a folder name, which can't. */
+function shorten(slug: string): string {
+  const chars = Array.from(slug);
+  let length = chars.length;
+  while (byteLength(chars.slice(0, length).join('')) > MAX_SLUG_BYTES) length -= 1;
+  return chars.slice(0, length).join('').replace(/-$/, '');
+}
+
 export function entrySlug(title: string, key: string): string {
   const slug = title.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '');
-  return slug || `entry-${Array.from(key).map((char) => char.codePointAt(0)!.toString(16)).join('-')}`;
+  return shorten(slug || `entry-${Array.from(key).map((char) => char.codePointAt(0)!.toString(16)).join('-')}`);
 }
 
 export function defineCollection<const Name extends string, Contract extends z.ZodObject, Content>(input: {

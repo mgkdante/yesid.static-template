@@ -26,8 +26,9 @@ function entryPaths(entries: readonly Entry[], parentOf: (entry: Entry) => strin
     const pathFor = (slug: string) => [parentOf(entry), slug].filter(Boolean).join('/');
     const isTaken = (slug: string) => taken.has(`${entry.language}:${pathFor(slug)}`);
     let slug = entry.slug;
-    if (isTaken(slug)) slug = fileSlug.startsWith(slug) ? fileSlug : `${slug}-${fileSlug}`;
-    while (isTaken(slug)) slug = `${slug}-${fileSlug}`;
+    // A title's own slug never holds `--`, so a later title can't land on an address made here and move this entry.
+    if (isTaken(slug)) slug = fileSlug.startsWith(slug) ? fileSlug : `${slug}--${fileSlug}`;
+    while (isTaken(slug)) slug = `${slug}--${fileSlug}`;
     taken.add(`${entry.language}:${pathFor(slug)}`);
     return [`${entry.id}/${entry.language}`, pathFor(slug)];
   }));

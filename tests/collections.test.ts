@@ -76,9 +76,12 @@ test('entries that share a title get their own addresses, whatever the Owner wri
     .toEqual({ 'nouvelles.fr': '/guides/nouvelles/', 'nouvelles-1.fr': '/guides/nouvelles-1/' });
   // Titles that differ only by accent or case, with the hashed file names a collection without `title` gets.
   expect(paths({ './resources/52cb.fr.md': source('Été'), './resources/aa57.fr.md': source('ete') }))
-    .toEqual({ '52cb.fr': '/guides/ete/', 'aa57.fr': '/guides/ete-aa57/' });
+    .toEqual({ '52cb.fr': '/guides/ete/', 'aa57.fr': '/guides/ete--aa57/' });
   expect(paths({ './resources/a~b.fr.md': source('Un'), './resources/c.fr.md': source('Un') }))
-    .toEqual({ 'a~b.fr': '/guides/un/', 'c.fr': '/guides/un-c/' });
+    .toEqual({ 'a~b.fr': '/guides/un/', 'c.fr': '/guides/un--c/' });
+  // A new title can't land on the address a twin already has.
+  expect(paths({ './resources/foo.fr.md': source('Foo'), './resources/bar.fr.md': source('Foo'), './resources/foo-bar.fr.md': source('Foo bar') }))
+    .toEqual({ 'foo.fr': '/guides/foo/', 'bar.fr': '/guides/foo--bar/', 'foo-bar.fr': '/guides/foo-bar/' });
   // Sharing a title across languages is normal and needs nothing.
   expect(paths({ './resources/one.fr.md': source('Same'), './resources/one.en.md': source('Same') }))
     .toEqual({ 'one.en': '/en/resources/same/', 'one.fr': '/guides/same/' });
@@ -93,9 +96,22 @@ test('an entry listed on the home page keeps out of the addresses the site alrea
   const source = (name: string) => `---\nname: ${name}\nsummary: Help\n---\n`;
   const titles = { './resources/one.fr.md': source('À propos'), './resources/two.fr.md': source('admin'), './resources/three.fr.md': source('EN') };
   const catalog = createCatalog(settings, pages, [definition], titles);
-  expect(catalog.map.path('resources:one', 'fr')).toBe('/a-propos-one/');
-  expect(catalog.map.path('resources:two', 'fr')).toBe('/admin-two/');
-  expect(catalog.map.path('resources:three', 'fr')).toBe('/en-three/');
+  expect(catalog.map.path('resources:one', 'fr')).toBe('/a-propos--one/');
+  expect(catalog.map.path('resources:two', 'fr')).toBe('/admin--two/');
+  expect(catalog.map.path('resources:three', 'fr')).toBe('/en--three/');
+});
+
+test('a title of any length gets an address short enough to be a folder name', () => {
+  const pages = [{ id: 'resources', kind: 'fixed' as const, slugs: { fr: 'guides', en: 'resources', es: 'recursos' } }];
+  const source = (name: string) => `---\nname: ${name}\nsummary: Help\n---\n`;
+  const bytes = (text: string) => new TextEncoder().encode(text).length;
+  const slugOf = (title: string) => createCatalog(settings, pages, [resources], { './resources/one.fr.md': source(title) }).entries[0];
+  expect(slugOf('Un titre court').slug).toBe('un-titre-court');
+  expect(bytes(slugOf('a'.repeat(300)).slug)).toBeLessThanOrEqual(80);
+  expect(bytes(slugOf('日本語'.repeat(100)).slug)).toBeLessThanOrEqual(80);
+  expect(slugOf('日本語'.repeat(100)).slug.at(-1)).not.toBe('�');
+  expect(slugOf('mot '.repeat(100)).slug.endsWith('-')).toBe(false);
+  expect(slugOf('a'.repeat(300)).content).toMatchObject({ name: 'a'.repeat(300) });
 });
 
 test('collection identities stay separate', () => {

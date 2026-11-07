@@ -13,6 +13,17 @@ test('Markdown removes executable HTML and dangerous links', () => {
   expect(renderMarkdown('`<script>`')).toContain('&lt;script&gt;');
   expect(renderMarkdown('Text <span>inline</span>')).not.toContain('<span>');
 });
+test('a malformed link keeps its text and loses the address the build could not read', () => {
+  for (const href of ['/%', '/%ZZ', '/#%', 'http://[']) {
+    const html = renderMarkdown(`[mon lien](${href})`);
+    expect(html).toContain('mon lien');
+    expect(html).not.toContain('href');
+  }
+  expect(renderMarkdown('![photo](/%ZZ)')).not.toContain('src=');
+  expect(renderMarkdown('[bon](/a-propos/#equipe)')).toContain('href="/a-propos/#equipe"');
+  expect(renderMarkdown('[été](/%C3%A9t%C3%A9/)')).toContain('href="/%C3%A9t%C3%A9/"');
+  expect(renderMarkdown('![photo](/images/uploads/a~b.webp)')).toContain('src="/images/uploads/a~b.webp"');
+});
 test('JSON-LD contains only provided business facts', () => {
   const minimal = businessJsonLd({ name: site.business.name });
   expect(minimal).toEqual({ '@context': 'https://schema.org', '@type': 'Organization', name: site.business.name });
