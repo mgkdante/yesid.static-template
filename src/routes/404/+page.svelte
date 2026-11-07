@@ -4,7 +4,7 @@
   import ErrorSection from '#lib/sections/Error.svelte';
   import Seo from '#lib/components/Seo.svelte';
 </script>
-<Seo title={content[site.defaultLanguage].error.title} description={content[site.defaultLanguage].error.description} canonical={`${site.origin}/404.html`} noindex />
+<Seo title={content[site.defaultLanguage].error.title} description={content[site.defaultLanguage].error.description} language={site.defaultLanguage} noindex />
 <main id="main">
 {#each site.languages as language (language.code)}
   <section lang={language.code}>

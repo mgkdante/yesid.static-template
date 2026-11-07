@@ -5,7 +5,7 @@ import { renderMarkdown } from './markdown.ts';
 export const collections = [
   defineCollection({
     name: 'posts', label: 'Blog', listing: 'blog', contract: postContract,
-    metadata: (data) => ({ title: data.title, description: data.description }),
+    metadata: (data) => ({ title: data.title, description: data.description, image: data.photo || undefined }),
     present: (data) => ({ ...data, html: renderMarkdown(data.body) })
   }),
   defineCollection({

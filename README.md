@@ -43,10 +43,19 @@ An entry filename identifies the same item across translations. Collection names
 
 Blog retains title, description, date, optional cover photo, photo description and Markdown body. Projects instead uses name, summary, services and body, without a date or photo. Their fields, detail markup, listing markup and ordering remain separate. Shared values are discovered from the package's generated field metadata, including nested lists, rather than a hardcoded date/photo list.
 
-Markdown becomes HTML at build time through Marked with raw HTML removed, followed by the sanitize-html allowlist. Photos upload to `static/images/uploads` and are served from `/images/uploads`. This Foundation does not resize images or generate social cards.
+Markdown becomes HTML at build time through Marked with raw HTML removed, followed by the sanitize-html allowlist. Photos upload to `static/images/uploads` and are served from `/images/uploads`.
 
 **Login Site integration is not verified:** its inspected local source at `site-editor-login/src/sites.ts` currently allows Markdown writes only in `src/lib/content/posts/`. A Projects or other collection save therefore needs a separately reviewed Login Site allowlist change. A dummy site also needs an authorized site registration, repository App access and a signed-in member. The template tests simulate content create/edit/delete through the public catalog interface; they do not prove Sveltia-to-GitHub writes. Do not reuse a real client's domain or membership to test this. Keep this repository's deployment disabled while testing dummy content.
 
+
+## Link previews, icons and structured data
+
+Set these in `config/site.ts`. All are optional, and nothing is emitted for a value that is absent.
+
+- `languages[].shareImage`: a 1200 x 630 file in `static/`, per language. A Blog Post's cover replaces it on that post. Keep editable text and phone numbers off the card, because they go stale when an Owner edits. Open the image, then test the real link on a phone in each language.
+- `languages[].ogLocale`: the Open Graph locale.
+- `icons`: favicon and touch icon files in `static/`. They are part of the Custom Design, so this starter has none.
+- `business.type`: a schema.org type, kept in code and out of the editor. `business.hours` feeds structured data from one place.
 
 ## Static output and 404 limit
 

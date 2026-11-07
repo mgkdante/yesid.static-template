@@ -7,7 +7,7 @@ export interface Entry<Name extends string = string, Content = unknown> {
   readonly collection: Name;
   readonly language: string;
   readonly slug: string;
-  readonly metadata: { readonly title: string; readonly description: string };
+  readonly metadata: { readonly title: string; readonly description: string; readonly image?: string };
   readonly content: Content;
   readonly shared: unknown;
 }
