@@ -99,7 +99,7 @@ After the first authorized publish, check that `<site>/admin/` leads to `login.y
 | `/<slug>/` is not found | No site record, or the slug is invalid or reserved |
 | The editor says its configuration is unavailable | The App can't reach the repository, or `cms/config.yml` isn't on the branch. The Login Site keeps a copy for 60 seconds |
 | A person gets no code | No membership on any site, or their only memberships are unconfirmed Employee invitations older than 7 days |
-| A save is refused | The file path is outside the Login Site's `CONTENT_FILES` rules. Check for a collection folder it doesn't allow, or `~` in a name |
+| A save is refused | The file path is outside the Login Site's `CONTENT_FILES` rules. Check for a folder nested below its collection, a capital letter in a folder name, or an upload that isn't WebP, PNG, JPEG or AVIF |
 
 ## When a client leaves
 
