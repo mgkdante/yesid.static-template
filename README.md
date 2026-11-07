@@ -37,15 +37,17 @@ To add a collection:
 4. Add the collection's detail and listing components under `sections/collections/` and register them in that directory's `index.ts`. This registry is checked against the collection names. The shared route requires no edits.
 5. Add entries at `src/lib/content/<collection>/<entry>.<language>.md`, then run `bun run cms:config`, check, test and build. File discovery, CMS folder registration, routes, hreflang and sitemap need no additional collection list.
 
+To remove a collection, delete its registry entry, contract, views and folder, then its listing page from the contract, Site Map, `contentGroups` and content files. A site with no collection at all is fine: type it as `collections: readonly CollectionDefinition[] = []` in the registry, with `collectionViews = {}`.
+
 Storage follows the released package: one YAML-frontmatter Markdown file per entry language, one level below the collection folder. Arbitrary nested content fields are supported by its contract. This is not a page builder, a relational CMS or a plugin system. New content types still need their own fields and Custom Design; infrastructure code stays unchanged. A contract without a `body` field uses only frontmatter and leaves the document body empty.
 
 An entry filename identifies the same item across translations. Collection names namespace identities, so Blog and Projects may use the same filename. Public paths are `<translated listing slug>/<entry slug>/`; changing a title-derived public slug needs a redirect on an already published site. Missing translations never advertise a page. A missing collection folder may be empty, while an unregistered content folder, invalid file, path collision or shared-field disagreement fails the build.
 
 Blog retains title, description, date, optional cover photo, photo description and Markdown body. Projects instead uses name, summary, services and body, without a date or photo. Their fields, detail markup, listing markup and ordering remain separate. Shared values are discovered from the package's generated field metadata, including nested lists, rather than a hardcoded date/photo list.
 
-Markdown becomes HTML at build time through Marked with raw HTML removed, followed by the sanitize-html allowlist. Photos upload to `static/images/uploads` and are served from `/images/uploads`.
+Markdown becomes HTML at build time through Marked with raw HTML removed, followed by the sanitize-html allowlist. Photos upload to `static/images/uploads` and are served from `/images/uploads`. The editor renames a photo to plain characters, converts it to WebP and caps it at 2048 pixels before it uploads, so no build step resizes images.
 
-**Login Site rules:** a save only reaches the repository when its path matches `CONTENT_FILES` in the `yesid.login` repository. A collection folder those rules don't allow can't save. The template tests cover content create, edit and delete through the public catalog interface. They don't prove a real save through the live Login Site, so do not reuse a real client's domain or membership to test one. Keep this repository's deployment disabled while testing dummy content.
+**Login Site rules:** a save only reaches the repository when its path matches `CONTENT_FILES` in the `yesid.login` repository. A collection folder those rules don't allow can't save: `tests/login-rules.test.ts` holds a hand-kept copy of them, updated when they change, and names any such folder. Projects is one until the Login Site allows it, so remove the Projects example from a client's site if they don't need it, or wait for that change. The template tests cover content create, edit and delete through the public catalog interface. They don't prove a real save through the live Login Site, so do not reuse a real client's domain or membership to test one. Keep this repository's deployment disabled while testing dummy content.
 
 
 ## Link previews, icons and structured data
@@ -67,7 +69,7 @@ A single static `404.html` cannot select a language from an unknown request URL 
 
 - `config/site.ts`: Business Facts and settings.
 - `site-map.ts` and `collection-catalog.ts`: page identities, translated paths, available translations and queries.
-- `content/contract.ts`: editable shape, inferred types and CMS fields, using released `@yesid/content-contract` 0.3.0.
+- `content/contract.ts`: editable shape, inferred types and CMS fields, using released `@yesid/content-contract` 0.4.0.
 - `content/collections.ts`: generic parsing and contract-derived shared-field checks.
 - `content/registry.ts`: collection definitions and typed presentation data.
 - `content/index.ts`: build-time discovery and validation.

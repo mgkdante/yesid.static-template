@@ -1,5 +1,7 @@
 import { expect, test } from 'bun:test';
-import { collections } from '../src/lib/content/registry.ts';
+import { z } from 'zod';
+import { line } from '@yesid/content-contract';
+import { defineCollection } from '../src/lib/content/collections.ts';
 import { renderMarkdown } from '../src/lib/content/markdown.ts';
 import { businessJsonLd, safeJson } from '../src/lib/seo.ts';
 import { site } from '../src/lib/config/site.ts';
@@ -22,9 +24,14 @@ test('JSON embedded in head cannot close its script', () => {
   expect(safeJson(value)).not.toContain('<');
   expect(JSON.parse(safeJson(value))).toEqual(value);
 });
-
 test('a symbolic title remains valid wording and has an identity-based path', () => {
-  const post = collections[0].parse(`entry.${site.defaultLanguage}.md`, `---\ntitle: '✨'\ndescription: 'x'\ndate: '2026-01-01'\nphoto: ''\nphotoAlt: 'x'\n---\nBody`, [site.defaultLanguage]);
+  const pages = defineCollection({
+    name: 'notes', label: 'Notes', listing: 'notes',
+    contract: z.strictObject({ title: line('Title') }),
+    metadata: (data) => ({ title: data.title, description: data.title }),
+    present: (data) => data
+  });
+  const post = pages.parse('entry.fr.md', "---\ntitle: '✨'\n---\n", ['fr']);
   expect(post.content.title).toBe('✨');
   expect(post.slug).toMatch(/^entry-/);
 });
