@@ -14,14 +14,14 @@ test('translated slugs resolve and switch the same page', () => {
   expect(map.resolve('/en/a-propos/')).toBeUndefined();
   expect(map.path('missing', 'en')).toBeUndefined();
 });
-test('a third language needs only settings and translated slugs', () => {
-  const settings = { ...site, languages: [...site.languages, { code: 'es', label: 'Español' }] };
-  const pages = fixedPages.map((page) => ({ ...page, slugs: { ...page.slugs, es: page.id === 'home' ? '' : `pagina-${page.id}` } }));
+test('another language needs only settings and translated slugs', () => {
+  const settings = { ...site, languages: [...site.languages, { code: 'de', label: 'Deutsch' }] };
+  const pages = fixedPages.map((page) => ({ ...page, slugs: { ...page.slugs, de: page.id === 'home' ? '' : `seite-${page.id}` } }));
   const map = createSiteMap(settings, pages);
-  expect(map.path('home', 'es')).toBe('/es/');
-  expect(map.switchTarget('/en/about/', 'es')).toBe('/es/pagina-about/');
-  expect(map.alternates('about')).toHaveLength(3);
-  expect(map.navigation('es')).toHaveLength(pages.length);
+  expect(map.path('home', 'de')).toBe('/de/');
+  expect(map.switchTarget('/en/about/', 'de')).toBe('/de/seite-about/');
+  expect(map.alternates('about')).toHaveLength(4);
+  expect(map.navigation('de')).toHaveLength(pages.length);
   expect(() => createSiteMap(settings, fixedPages)).toThrow('Missing fixed slug');
 });
 test('an untranslated post never advertises a missing target', () => {
