@@ -6,7 +6,7 @@
   import Footer from '#lib/sections/Footer.svelte';
   let { data } = $props();
 </script>
-<Seo title={data.page.title} description={data.page.description} canonical={data.row.url} alternates={data.alternates} />
+<Seo title={data.page.title} description={data.page.description} canonical={data.row.url} language={data.row.language} alternates={data.alternates} image={data.entry?.metadata.image} />
 <Header text={data.menu} navigation={data.navigation} alternates={data.alternates} />
 {#if data.entry}
   {@const Detail = collectionViews[data.entry.collection].detail}
