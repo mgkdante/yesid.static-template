@@ -49,7 +49,7 @@ function readDocument(file: string, source: string, languages: readonly string[]
   return { key: identity[1], language: identity[2], front, body: document[2].trim() };
 }
 
-function entrySlug(title: string, key: string): string {
+export function entrySlug(title: string, key: string): string {
   const slug = title.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '');
   return slug || `entry-${Array.from(key).map((char) => char.codePointAt(0)!.toString(16)).join('-')}`;

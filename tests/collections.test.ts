@@ -64,7 +64,41 @@ test('unknown collections and language files fail with their source path', () =>
   expect(() => loadCollections([resources], { './resources/entry.zz.md': '' }, ['fr'])).toThrow('Invalid collection file');
 });
 
-test('collection identities stay separate and path collisions fail', () => {
+test('entries that share a title get their own addresses, whatever the Owner writes', () => {
+  const pages = [{ id: 'resources', kind: 'fixed' as const, slugs: { fr: 'guides', en: 'resources', es: 'recursos' } }];
+  const source = (name: string) => `---\nname: ${name}\nsummary: Help\n---\n`;
+  const paths = (sources: Record<string, string>) => {
+    const { entries, map } = createCatalog(settings, pages, [resources], sources);
+    return Object.fromEntries(entries.map(({ id, language }) => [`${id.split(':')[1]}.${language}`, map.path(id, language)]));
+  };
+  // The existing post keeps its address when a newer one takes the same title.
+  expect(paths({ './resources/nouvelles.fr.md': source('Nouvelles'), './resources/nouvelles-1.fr.md': source('Nouvelles') }))
+    .toEqual({ 'nouvelles.fr': '/guides/nouvelles/', 'nouvelles-1.fr': '/guides/nouvelles-1/' });
+  // Titles that differ only by accent or case, with the hashed file names a collection without `title` gets.
+  expect(paths({ './resources/52cb.fr.md': source('Été'), './resources/aa57.fr.md': source('ete') }))
+    .toEqual({ '52cb.fr': '/guides/ete/', 'aa57.fr': '/guides/ete-aa57/' });
+  expect(paths({ './resources/a~b.fr.md': source('Un'), './resources/c.fr.md': source('Un') }))
+    .toEqual({ 'a~b.fr': '/guides/un/', 'c.fr': '/guides/un-c/' });
+  // Sharing a title across languages is normal and needs nothing.
+  expect(paths({ './resources/one.fr.md': source('Same'), './resources/one.en.md': source('Same') }))
+    .toEqual({ 'one.en': '/en/resources/same/', 'one.fr': '/guides/same/' });
+});
+
+test('an entry listed on the home page keeps out of the addresses the site already uses', () => {
+  const definition = { ...resources, listing: 'home' };
+  const pages = [
+    { id: 'home', kind: 'fixed' as const, slugs: { fr: '', en: '', es: '' } },
+    { id: 'about', kind: 'fixed' as const, slugs: { fr: 'a-propos', en: 'about', es: 'acerca-de' } }
+  ];
+  const source = (name: string) => `---\nname: ${name}\nsummary: Help\n---\n`;
+  const titles = { './resources/one.fr.md': source('À propos'), './resources/two.fr.md': source('admin'), './resources/three.fr.md': source('EN') };
+  const catalog = createCatalog(settings, pages, [definition], titles);
+  expect(catalog.map.path('resources:one', 'fr')).toBe('/a-propos-one/');
+  expect(catalog.map.path('resources:two', 'fr')).toBe('/admin-two/');
+  expect(catalog.map.path('resources:three', 'fr')).toBe('/en-three/');
+});
+
+test('collection identities stay separate', () => {
   const other = defineCollection({
     name: 'other', label: 'Other', listing: 'other', contract: resources.cms.contract,
     metadata: (data) => ({ title: String(data.name), description: String(data.summary) }), present: (data) => data
@@ -72,8 +106,6 @@ test('collection identities stay separate and path collisions fail', () => {
   const source = '---\nname: One\nsummary: Help\n---\n';
   const entries = loadCollections([resources, other], { './resources/same.fr.md': source, './other/same.fr.md': source }, ['fr']);
   expect(new Set(entries.map(({ id }) => id)).size).toBe(2);
-  const pages = [{ id: 'resources', kind: 'fixed' as const, slugs: { fr: 'guides', en: 'resources', es: 'recursos' } }];
-  expect(() => createCatalog(settings, pages, [resources], { './resources/a.fr.md': source, './resources/b.fr.md': source })).toThrow('Duplicate page path');
 });
 
 test('a collection can list its entries on each language home', () => {

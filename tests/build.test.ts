@@ -30,6 +30,19 @@ test('no built page runs JavaScript', () => {
     expect(html).not.toContain('rel="modulepreload"');
   }
 });
+test('every link the site itself writes leads to a built page', () => {
+  // Links an Owner wrote in their content may go dead without blocking a publish. The site's own may not.
+  for (const row of map.rows) {
+    const html = read(`build${row.path}index.html`);
+    const own = [...html.matchAll(/<(header|footer)\b[\s\S]*?<\/\1>/g)].map(([block]) => block).join('');
+    expect(own).not.toBe('');
+    for (const [, href] of own.matchAll(/href="(\/[^"#?]*)/g)) {
+      const path = decodeURIComponent(href);
+      expect({ page: row.path, link: path, built: existsSync(`build${path}${path.endsWith('/') ? 'index.html' : ''}`) })
+        .toEqual({ page: row.path, link: path, built: true });
+    }
+  }
+});
 test('build includes only real page URLs in its sitemap', () => {
   const xml = read('build/sitemap.xml');
   expect([...xml.matchAll(/<loc>/g)]).toHaveLength(map.rows.length);
