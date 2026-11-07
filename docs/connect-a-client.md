@@ -88,7 +88,7 @@ Use an IT account first, then have the Owner do it on their own phone.
 
 ## 7. Publish
 
-Publishing is set up separately in the README's "Start a client site". A failed build keeps the previous site up. IT handles the domain, then sets `origin` to it.
+Publishing is set up separately in the README's "Start a client site". A failed build keeps the previous site up and opens an issue titled `Publishing failed`, assigned to the repository owner. IT handles the domain, then sets `origin` to it.
 
 After the first authorized publish, check that `<site>/admin/` leads to `login.yesid.dev/<slug>/` and that a save publishes by itself.
 

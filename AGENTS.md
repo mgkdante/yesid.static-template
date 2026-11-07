@@ -1,6 +1,6 @@
 # Working here
 
-Read the current About Yesid, enabled Notion Skills and model-selection Skill before agentic coding. Notion owns intent and decisions; this repository owns implementation and local commands. Write to Notion only when the current task authorizes it.
+Notion owns intent, decisions, standing rules and how to work with Yesito. Before agentic coding, read [LLMs](https://app.notion.com/p/4083e863069080df9e63d165128a1522), which routes to the rest, and this project's [Notion home](https://app.notion.com/p/4113e863069080debbc0d277c139afa2). Don't add standing rules here: this file keeps local commands and constraints only. Write to Notion only when the current task authorizes it.
 
 Use Node 24 and Bun from `.bun-version`.
 
@@ -15,6 +15,4 @@ Keep Business Facts and settings in `src/lib/config/site.ts`. Fixed Page identit
 
 Custom Design belongs in `src/lib/sections/`; keep routing, content and SEO independent. Render semantic HTML; this starter has no visual design and imports no design-system UI, tokens or motion. Markdown must be sanitized at build time.
 
-Keep files focused, typically under 400 lines and always under 800. Functions stay under 50 lines. Use immutable updates, explicit errors and short comments. No app `console.log`. Never use em dashes.
-
-Keep the repository private. Never read or commit secrets. Never deploy, create Cloudflare resources, modify neighboring repositories or contact the Login Site without task-specific authorization. The deploy job stays gated by `DEPLOY_ENABLED`. Saved content paths must match the Login Site's file rules, owned in its repository. Connecting a client: `docs/connect-a-client.md`.
+Keep the repository private. Never read or commit secrets. Never deploy, create Cloudflare resources, modify neighboring repositories or contact the Login Site without task-specific authorization. Publishing stays gated by `DEPLOY_ENABLED`. Saved content paths must match the Login Site's file rules, owned in its repository. Connecting a client: `docs/connect-a-client.md`.
