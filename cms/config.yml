@@ -8,6 +8,19 @@ backend:
   graphql_api_root: https://login.yesid.dev/yesid.static-template
 media_folder: static/images/uploads
 public_folder: /images/uploads
+slug:
+  encoding: ascii
+  clean_accents: true
+media_libraries:
+  default:
+    config:
+      slugify_filename: true
+      transformations:
+        raster_image:
+          format: webp
+          quality: 85
+          width: 2048
+          height: 2048
 i18n:
   structure: multiple_files
   locales:
@@ -194,7 +207,8 @@ collections:
     create: true
     extension: md
     format: yaml-frontmatter
-    i18n: true
+    i18n:
+      initial_locales: default
     fields:
       - name: title
         label: Titre
@@ -215,10 +229,12 @@ collections:
         i18n: duplicate
         widget: image
         required: false
+        accept: "image/jpeg,image/png,image/webp,image/avif,image/heic,image/heif"
       - name: photoAlt
         label: Description de la photo
         i18n: true
         widget: text
+        required: false
       - name: body
         label: Texte
         i18n: true
@@ -229,7 +245,8 @@ collections:
     create: true
     extension: md
     format: yaml-frontmatter
-    i18n: true
+    i18n:
+      initial_locales: default
     fields:
       - name: name
         label: Nom du projet

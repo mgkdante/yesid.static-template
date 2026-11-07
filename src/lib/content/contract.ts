@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { date, image, line, list, paragraph, richText } from '@yesid/content-contract';
+import { date, image, line, list, optionalParagraph, paragraph, richText } from '@yesid/content-contract';
 
 const pageFields = {
   title: line('Titre'),
@@ -24,7 +24,7 @@ export const postContract = z.strictObject({
   description: paragraph('Description pour les moteurs de recherche'),
   date: date('Date', { shared: true }),
   photo: image('Photo', { optional: true, shared: true }),
-  photoAlt: paragraph('Description de la photo'),
+  photoAlt: optionalParagraph('Description de la photo'),
   body: richText('Texte')
 });
 export const projectContract = z.strictObject({

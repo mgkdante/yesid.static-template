@@ -43,9 +43,9 @@ An entry filename identifies the same item across translations. Collection names
 
 Blog retains title, description, date, optional cover photo, photo description and Markdown body. Projects instead uses name, summary, services and body, without a date or photo. Their fields, detail markup, listing markup and ordering remain separate. Shared values are discovered from the package's generated field metadata, including nested lists, rather than a hardcoded date/photo list.
 
-Markdown becomes HTML at build time through Marked with raw HTML removed, followed by the sanitize-html allowlist. Photos upload to `static/images/uploads` and are served from `/images/uploads`.
+Markdown becomes HTML at build time through Marked with raw HTML removed, followed by the sanitize-html allowlist. Photos upload to `static/images/uploads` and are served from `/images/uploads`. The editor renames a photo to plain characters, converts it to WebP and caps it at 2048 pixels before it uploads, so no build step resizes images.
 
-**Login Site rules:** a save only reaches the repository when its path matches `CONTENT_FILES` in the `yesid.login` repository. A collection folder those rules don't allow can't save. The template tests cover content create, edit and delete through the public catalog interface. They don't prove a real save through the live Login Site, so do not reuse a real client's domain or membership to test one. Keep this repository's deployment disabled while testing dummy content.
+**Login Site rules:** a save only reaches the repository when its path matches `CONTENT_FILES` in the `yesid.login` repository. A collection folder those rules don't allow can't save: `tests/login-rules.test.ts` mirrors them and names any such folder. Projects is one until the Login Site allows it, so remove the Projects example from a client's site if they don't need it, or wait for that change. The template tests cover content create, edit and delete through the public catalog interface. They don't prove a real save through the live Login Site, so do not reuse a real client's domain or membership to test one. Keep this repository's deployment disabled while testing dummy content.
 
 
 ## Link previews, icons and structured data
@@ -67,7 +67,7 @@ A single static `404.html` cannot select a language from an unknown request URL 
 
 - `config/site.ts`: Business Facts and settings.
 - `site-map.ts` and `collection-catalog.ts`: page identities, translated paths, available translations and queries.
-- `content/contract.ts`: editable shape, inferred types and CMS fields, using released `@yesid/content-contract` 0.3.0.
+- `content/contract.ts`: editable shape, inferred types and CMS fields, using released `@yesid/content-contract` 0.4.0.
 - `content/collections.ts`: generic parsing and contract-derived shared-field checks.
 - `content/registry.ts`: collection definitions and typed presentation data.
 - `content/index.ts`: build-time discovery and validation.
