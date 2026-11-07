@@ -8,7 +8,7 @@ The sample business is fake. `example.invalid` cannot be a production destinatio
 
 1. Create a private client repository from this starter. Install Bun 1.4.4 and Node 24 (`.node-version` pins the tested patch). Run `bun install --frozen-lockfile`.
 2. Edit `src/lib/config/site.ts`: repository slug, public origin, Active Languages, default language and Business Facts. Facts appear once here and feed visible contact details and JSON-LD. Omit unknown facts. Update the Worker name in `wrangler.jsonc` to the slug with dots replaced by hyphens; tests check agreement.
-3. Fill `src/lib/content/<language>.json` and `pages.<language>.json`. Define the client's editable content shape in `contract.ts`, then run `bun run content:format` and `bun run cms:config`. Commit content and `cms/config.yml` together. Structure is checked; the Owner controls wording.
+3. Fill `src/lib/content/<name>.<language>.json`, one file per place on the site. `contentGroups` in `src/lib/content/cms.ts` lists them and lays out the editor like the site. Define the client's editable content shape in `contract.ts`, then run `bun run content:format` and `bun run cms:config`. Commit content and `cms/config.yml` together. Structure is checked; the Owner controls wording.
 4. Replace `src/lib/sections/` with the client's Custom Design. Header, page, footer and error markup live there. Admin markup lives in its route. Keep the content, Site Map and SEO interfaces intact. No rendered pages use `@yesid/tokens`, `@yesid/ui` or `@yesid/motion`.
 5. Add Fixed Pages to the contract and the `fixedPages` list in `src/lib/site-map.ts`. All paths, navigation, canonical URLs, language switches, prerender entries, hreflang and sitemap output come from that map. A slug change needs a redirect before publication.
 6. To add a language, add its code and label to settings, its two JSON files and a translated slug for every Fixed Page. No matcher, route, switcher, sitemap or error-page language list needs editing. Missing fixed content or slugs fail the build. An untranslated Blog Post is simply absent from that language.
@@ -22,7 +22,6 @@ Posts live in `src/lib/content/posts/<entry>.<language>.md`. The entry filename 
 
 Photos upload to `static/images/uploads` and are served from `/images/uploads`. This Foundation does not resize images or generate social cards.
 
-**Known integration gap:** the Login Site currently permits only `src/lib/content/*.json` at one level and uploads. It cannot save `src/lib/content/posts/*.md` yet. The parent session owns that change. Until then, blog files can only be committed through GitHub/IT. The collection is declared here but end-to-end CMS publishing has not been proven.
 
 ## Static output and 404 limit
 

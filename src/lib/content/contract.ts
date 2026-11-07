@@ -13,12 +13,8 @@ export const siteTextContract = z.strictObject({
   error: group('Page introuvable', { title: line('Titre'), description: paragraph('Description'), home: line('Retour') }),
   admin: group('Connexion', { title: line('Titre'), description: paragraph('Description'), link: line('Lien') })
 });
-export const pagesContract = z.strictObject({
-  home: group('Accueil', pageFields),
-  about: group('Page fixe', pageFields),
-  legal: group('Mentions légales', pageFields),
-  blog: group('Blog', pageFields)
-});
+export const pageContract = z.strictObject(pageFields);
+export const fixedPageIds = ['home', 'about', 'blog', 'legal'] as const;
 export const postContract = z.strictObject({
   title: line('Titre'),
   description: paragraph('Description pour les moteurs de recherche'),
@@ -28,6 +24,6 @@ export const postContract = z.strictObject({
   body: richText('Texte')
 });
 export type SiteText = z.infer<typeof siteTextContract>;
-export type Pages = z.infer<typeof pagesContract>;
+export type FixedPageId = (typeof fixedPageIds)[number];
+export type Pages = Record<FixedPageId, z.infer<typeof pageContract>>;
 export type PostContent = z.infer<typeof postContract>;
-export type FixedPageId = keyof Pages;

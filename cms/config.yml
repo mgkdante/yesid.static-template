@@ -14,72 +14,18 @@ i18n:
     - fr
     - en
   default_locale: fr
-singletons:
-  - name: site-text
-    label: Texte du site
-    file: "src/lib/content/{{locale}}.json"
-    format: json
-    i18n: true
-    fields:
-      - name: skip
-        label: Aller au contenu
-        i18n: true
-        widget: string
-      - name: navigation
-        label: Navigation
-        i18n: true
-        widget: string
-      - name: languages
-        label: Langues
-        i18n: true
-        widget: string
-      - name: error
-        label: Page introuvable
-        i18n: true
-        widget: object
-        collapsed: true
-        fields:
-          - name: title
-            label: Titre
-            i18n: true
-            widget: string
-          - name: description
-            label: Description
-            i18n: true
-            widget: text
-          - name: home
-            label: Retour
-            i18n: true
-            widget: string
-      - name: admin
-        label: Connexion
-        i18n: true
-        widget: object
-        collapsed: true
-        fields:
-          - name: title
-            label: Titre
-            i18n: true
-            widget: string
-          - name: description
-            label: Description
-            i18n: true
-            widget: text
-          - name: link
-            label: Lien
-            i18n: true
-            widget: string
+collections:
   - name: pages
-    label: Pages fixes
-    file: "src/lib/content/pages.{{locale}}.json"
+    label: Pages
+    icon: web
     format: json
     i18n: true
-    fields:
+    files:
       - name: home
         label: Accueil
+        file: "src/lib/content/home.{{locale}}.json"
+        format: json
         i18n: true
-        widget: object
-        collapsed: true
         fields:
           - name: title
             label: Titre
@@ -95,27 +41,9 @@ singletons:
             widget: text
       - name: about
         label: Page fixe
+        file: "src/lib/content/about.{{locale}}.json"
+        format: json
         i18n: true
-        widget: object
-        collapsed: true
-        fields:
-          - name: title
-            label: Titre
-            i18n: true
-            widget: string
-          - name: description
-            label: Description pour les moteurs de recherche
-            i18n: true
-            widget: text
-          - name: body
-            label: Texte
-            i18n: true
-            widget: text
-      - name: legal
-        label: Mentions légales
-        i18n: true
-        widget: object
-        collapsed: true
         fields:
           - name: title
             label: Titre
@@ -130,10 +58,10 @@ singletons:
             i18n: true
             widget: text
       - name: blog
-        label: Blog
+        label: Page du blog
+        file: "src/lib/content/blog.{{locale}}.json"
+        format: json
         i18n: true
-        widget: object
-        collapsed: true
         fields:
           - name: title
             label: Titre
@@ -147,7 +75,90 @@ singletons:
             label: Texte
             i18n: true
             widget: text
-collections:
+  - name: everywhere
+    label: Partout sur le site
+    icon: public
+    format: json
+    i18n: true
+    files:
+      - name: shared
+        label: Textes communs
+        file: "src/lib/content/shared.{{locale}}.json"
+        format: json
+        i18n: true
+        fields:
+          - name: skip
+            label: Aller au contenu
+            i18n: true
+            widget: string
+          - name: navigation
+            label: Navigation
+            i18n: true
+            widget: string
+          - name: languages
+            label: Langues
+            i18n: true
+            widget: string
+          - name: error
+            label: Page introuvable
+            i18n: true
+            widget: object
+            collapsed: true
+            fields:
+              - name: title
+                label: Titre
+                i18n: true
+                widget: string
+              - name: description
+                label: Description
+                i18n: true
+                widget: text
+              - name: home
+                label: Retour
+                i18n: true
+                widget: string
+          - name: admin
+            label: Connexion
+            i18n: true
+            widget: object
+            collapsed: true
+            fields:
+              - name: title
+                label: Titre
+                i18n: true
+                widget: string
+              - name: description
+                label: Description
+                i18n: true
+                widget: text
+              - name: link
+                label: Lien
+                i18n: true
+                widget: string
+  - name: legal
+    label: Textes légaux
+    icon: gavel
+    format: json
+    i18n: true
+    files:
+      - name: legal
+        label: Mentions légales
+        file: "src/lib/content/legal.{{locale}}.json"
+        format: json
+        i18n: true
+        fields:
+          - name: title
+            label: Titre
+            i18n: true
+            widget: string
+          - name: description
+            label: Description pour les moteurs de recherche
+            i18n: true
+            widget: text
+          - name: body
+            label: Texte
+            i18n: true
+            widget: text
   - name: posts
     label: Blog
     folder: src/lib/content/posts
