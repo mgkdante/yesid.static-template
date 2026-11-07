@@ -1,20 +1,24 @@
 import { z } from 'zod';
-import { date, group, image, line, list, paragraph, richText } from '@yesid/content-contract';
+import { date, image, line, list, paragraph, richText } from '@yesid/content-contract';
 
 const pageFields = {
   title: line('Titre'),
   description: paragraph('Description pour les moteurs de recherche'),
   body: paragraph('Texte')
 };
-export const siteTextContract = z.strictObject({
+export const menuContract = z.strictObject({
   skip: line('Aller au contenu'),
-  navigation: line('Navigation'),
-  languages: line('Langues'),
-  error: group('Page introuvable', { title: line('Titre'), description: paragraph('Description'), home: line('Retour') }),
-  admin: group('Connexion', { title: line('Titre'), description: paragraph('Description'), link: line('Lien') })
+  navigation: line('Nom du menu'),
+  languages: line('Nom du choix de langue')
+});
+export const footerContract = z.strictObject({ note: line('Mention') });
+export const errorContract = z.strictObject({
+  title: line('Titre'),
+  description: paragraph('Description'),
+  home: line('Lien vers l’accueil')
 });
 export const pageContract = z.strictObject(pageFields);
-export const fixedPageIds = ['home', 'about', 'blog', 'projects', 'legal'] as const;
+export const fixedPageIds = ['home', 'about', 'blog', 'projects', 'privacy', 'terms'] as const;
 export const postContract = z.strictObject({
   title: line('Titre'),
   description: paragraph('Description pour les moteurs de recherche'),
@@ -29,7 +33,9 @@ export const projectContract = z.strictObject({
   services: list('Services', line('Service')),
   body: richText('Présentation du projet')
 });
-export type SiteText = z.infer<typeof siteTextContract>;
+export type MenuText = z.infer<typeof menuContract>;
+export type FooterText = z.infer<typeof footerContract>;
+export type ErrorText = z.infer<typeof errorContract>;
 export type FixedPageId = (typeof fixedPageIds)[number];
 export type Pages = Record<FixedPageId, z.infer<typeof pageContract>>;
 export type PostContent = z.infer<typeof postContract>;

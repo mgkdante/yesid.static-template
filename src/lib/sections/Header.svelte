@@ -1,7 +1,7 @@
 <script lang="ts">
   import { site } from '#lib/config/site.ts';
-  import type { SiteText } from '#lib/content/contract.ts';
-  let { text, navigation, alternates }: { text: SiteText; navigation: { path: string; title: string }[]; alternates: { language: string; path: string }[] } = $props();
+  import type { MenuText } from '#lib/content/contract.ts';
+  let { text, navigation, alternates }: { text: MenuText; navigation: { path: string; title: string }[]; alternates: { language: string; path: string }[] } = $props();
 </script>
 <a href="#main">{text.skip}</a>
 <header>

@@ -41,7 +41,7 @@ collections:
             i18n: true
             widget: text
       - name: about
-        label: Page fixe
+        label: À propos
         file: "src/lib/content/about.{{locale}}.json"
         format: json
         i18n: true
@@ -100,9 +100,9 @@ collections:
     format: json
     i18n: true
     files:
-      - name: shared
-        label: Textes communs
-        file: "src/lib/content/shared.{{locale}}.json"
+      - name: menu
+        label: Menu
+        file: "src/lib/content/menu.{{locale}}.json"
         format: json
         i18n: true
         fields:
@@ -111,58 +111,68 @@ collections:
             i18n: true
             widget: string
           - name: navigation
-            label: Navigation
+            label: Nom du menu
             i18n: true
             widget: string
           - name: languages
-            label: Langues
+            label: Nom du choix de langue
             i18n: true
             widget: string
-          - name: error
-            label: Page introuvable
+      - name: footer
+        label: Pied de page
+        file: "src/lib/content/footer.{{locale}}.json"
+        format: json
+        i18n: true
+        fields:
+          - name: note
+            label: Mention
             i18n: true
-            widget: object
-            collapsed: true
-            fields:
-              - name: title
-                label: Titre
-                i18n: true
-                widget: string
-              - name: description
-                label: Description
-                i18n: true
-                widget: text
-              - name: home
-                label: Retour
-                i18n: true
-                widget: string
-          - name: admin
-            label: Connexion
+            widget: string
+      - name: error
+        label: Page d’erreur
+        file: "src/lib/content/error.{{locale}}.json"
+        format: json
+        i18n: true
+        fields:
+          - name: title
+            label: Titre
             i18n: true
-            widget: object
-            collapsed: true
-            fields:
-              - name: title
-                label: Titre
-                i18n: true
-                widget: string
-              - name: description
-                label: Description
-                i18n: true
-                widget: text
-              - name: link
-                label: Lien
-                i18n: true
-                widget: string
+            widget: string
+          - name: description
+            label: Description
+            i18n: true
+            widget: text
+          - name: home
+            label: Lien vers l’accueil
+            i18n: true
+            widget: string
   - name: legal
     label: Textes légaux
     icon: gavel
     format: json
     i18n: true
     files:
-      - name: legal
-        label: Mentions légales
-        file: "src/lib/content/legal.{{locale}}.json"
+      - name: privacy
+        label: Confidentialité
+        file: "src/lib/content/privacy.{{locale}}.json"
+        format: json
+        i18n: true
+        fields:
+          - name: title
+            label: Titre
+            i18n: true
+            widget: string
+          - name: description
+            label: Description pour les moteurs de recherche
+            i18n: true
+            widget: text
+          - name: body
+            label: Texte
+            i18n: true
+            widget: text
+      - name: terms
+        label: Conditions d’utilisation
+        file: "src/lib/content/terms.{{locale}}.json"
         format: json
         i18n: true
         fields:

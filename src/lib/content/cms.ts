@@ -1,7 +1,7 @@
 import { cmsConfig, type ContentFile, type ContentFileGroup } from '@yesid/content-contract';
 import { collections } from './registry.ts';
 import { site } from '../config/site.ts';
-import { pageContract, siteTextContract } from './contract.ts';
+import { errorContract, footerContract, menuContract, pageContract } from './contract.ts';
 
 const contentFile = (name: string, label: string, contract: ContentFile['contract']): ContentFile => ({
   name,
@@ -18,7 +18,7 @@ export const contentGroups: readonly ContentFileGroup[] = [
     icon: 'web',
     files: [
       contentFile('home', 'Accueil', pageContract),
-      contentFile('about', 'Page fixe', pageContract),
+      contentFile('about', 'À propos', pageContract),
       contentFile('blog', 'Page du blog', pageContract),
       contentFile('projects', 'Page des projets', pageContract)
     ]
@@ -27,13 +27,17 @@ export const contentGroups: readonly ContentFileGroup[] = [
     name: 'everywhere',
     label: 'Partout sur le site',
     icon: 'public',
-    files: [contentFile('shared', 'Textes communs', siteTextContract)]
+    files: [
+      contentFile('menu', 'Menu', menuContract),
+      contentFile('footer', 'Pied de page', footerContract),
+      contentFile('error', 'Page d’erreur', errorContract)
+    ]
   },
   {
     name: 'legal',
     label: 'Textes légaux',
     icon: 'gavel',
-    files: [contentFile('legal', 'Mentions légales', pageContract)]
+    files: [contentFile('privacy', 'Confidentialité', pageContract), contentFile('terms', 'Conditions d’utilisation', pageContract)]
   }
 ];
 

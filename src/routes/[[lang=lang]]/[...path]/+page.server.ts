@@ -15,8 +15,9 @@ export const load: PageServerLoad = ({ url }) => {
   const entry = catalog.find(row.id, row.language);
   const listing = catalog.listing(row.id, row.language);
   const page = entry ? { ...entry.metadata, body: undefined } : localized.pages[row.id as FixedPageId];
+  const titled = (rows: typeof siteMap.rows) => rows.map((item) => ({ ...item, title: localized.pages[item.id as FixedPageId].title }));
   const items = listing?.entries.map((item) => ({ entry: item, path: siteMap.path(item.id, item.language)! })) ?? [];
-  return { row, page, entry, listing, items, text: localized.text,
+  return { row, page, entry, listing, items, menu: localized.menu, footer: localized.footer,
     alternates: siteMap.alternates(row.id),
-    navigation: siteMap.navigation(row.language).map((item) => ({ ...item, title: localized.pages[item.id as FixedPageId].title })) };
+    navigation: titled(siteMap.navigation(row.language)), footerLinks: titled(siteMap.footerLinks(row.language)) };
 };

@@ -20,7 +20,7 @@ test('another language needs only settings and translated slugs', () => {
   expect(map.path('home', 'de')).toBe('/de/');
   expect(map.switchTarget('/en/about/', 'de')).toBe('/de/seite-about/');
   expect(map.alternates('about')).toHaveLength(4);
-  expect(map.navigation('de')).toHaveLength(pages.length);
+  expect([...map.navigation('de'), ...map.footerLinks('de')]).toHaveLength(pages.length);
   expect(() => createSiteMap(settings, fixedPages)).toThrow('Missing fixed slug');
 });
 test('an untranslated post never advertises a missing target', () => {

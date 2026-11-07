@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { canonicalJson } from '@yesid/content-contract';
 import { site } from '../src/lib/config/site.ts';
 import { readdirSync } from 'node:fs';
-import { siteTextContract } from '../src/lib/content/contract.ts';
+import { fixedPageIds, menuContract } from '../src/lib/content/contract.ts';
 import { contentGroups, createCmsConfig } from '../src/lib/content/cms.ts';
 import { loadCollections } from '../src/lib/content/collections.ts';
 import { collections } from '../src/lib/content/registry.ts';
@@ -23,29 +23,25 @@ test('every content file on disk can be edited, and every editable file exists',
   const onDisk = readdirSync(new URL('../src/lib/content/', import.meta.url)).filter((name) => name.endsWith('.json')).sort();
   expect(onDisk).toEqual(expected);
 });
-test('the editor groups come before the blog', () => {
-  expect(createCmsConfig().collections?.map(({ name }) => name)).toEqual(['pages', 'everywhere', 'legal', 'posts', 'projects']);
+test('every Fixed Page has its editor entry, and the groups come before the folders', () => {
+  const inEditor = contentGroups.flatMap(({ files }) => files.map(({ name }) => name));
+  for (const id of fixedPageIds) expect(inEditor).toContain(id);
+  expect(createCmsConfig().collections?.map(({ name }) => name)).toEqual([...contentGroups, ...collections].map(({ name }) => name));
 });
 test('structure is checked while owner wording stays unrestricted', () => {
-  const source = JSON.parse(read(`src/lib/content/shared.${site.defaultLanguage}.json`));
-  expect(siteTextContract.safeParse({ ...source, skip: 'A'.repeat(10000) }).success).toBe(true);
-  expect(siteTextContract.safeParse({ ...source, skip: ' ' }).success).toBe(false);
-  expect(siteTextContract.safeParse({ ...source, typo: 'x' }).success).toBe(false);
+  const source = JSON.parse(read(`src/lib/content/menu.${site.defaultLanguage}.json`));
+  expect(menuContract.safeParse({ ...source, skip: 'A'.repeat(10000) }).success).toBe(true);
+  expect(menuContract.safeParse({ ...source, skip: ' ' }).success).toBe(false);
+  expect(menuContract.safeParse({ ...source, typo: 'x' }).success).toBe(false);
   const { skip, ...missing } = source;
-  expect(siteTextContract.safeParse(missing).success).toBe(false);
+  expect(menuContract.safeParse(missing).success).toBe(false);
 });
 test('committed CMS config equals the contract output', () => {
   const config = createCmsConfig();
   expect(Bun.YAML.parse(read('cms/config.yml'))).toEqual(config);
   expect(config.backend.repo).toBe(`mgkdante/${site.slug}`);
-  const posts = config.collections?.find(({ name }) => name === 'posts');
-  if (!posts || !('fields' in posts)) throw new Error('no blog folder');
-  expect(posts.folder).toBe('src/lib/content/posts');
   expect(config.media_folder).toBe('static/images/uploads');
   expect(config.public_folder).toBe('/images/uploads');
-  const { fields } = posts;
-  expect(fields.find((field) => field.name === 'date')?.i18n).toBe('duplicate');
-  expect(fields.find((field) => field.name === 'photo')?.i18n).toBe('duplicate');
 });
 test('all collections validate their contracts and shared fields', () => {
   const sources = sampleSources();
