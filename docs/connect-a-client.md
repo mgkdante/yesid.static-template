@@ -80,8 +80,7 @@ Owner and IT access never expires. The Owner adds and removes Employees at `logi
 
 Use an IT account first, then have the Owner do it on their own phone.
 
-- [ ] `<site>/admin/` leads to `login.yesid.dev/<slug>/`.
-- [ ] A code arrives by email, and the editor opens with the site's own sections.
+- [ ] At `login.yesid.dev/<slug>/`, a code arrives by email and the editor opens with the site's own sections.
 - [ ] A one-line edit in the editor creates a commit on `main`.
 - [ ] A new blog post with an accented title and a phone photo saves.
 - [ ] Someone who isn't a member gets no access to the site.
@@ -91,14 +90,16 @@ Use an IT account first, then have the Owner do it on their own phone.
 
 Publishing is set up separately in the README's "Start a client site". A failed build keeps the previous site up. IT handles the domain, then sets `origin` to it.
 
+After the first authorized publish, check that `<site>/admin/` leads to `login.yesid.dev/<slug>/` and that a save publishes by itself.
+
 ## When it doesn't work
 
 | What you see | Likely cause |
 | --- | --- |
 | `/<slug>/` is not found | No site record, or the slug is invalid or reserved |
 | The editor says its configuration is unavailable | The App can't reach the repository, or `cms/config.yml` isn't on the branch. The Login Site keeps a copy for 60 seconds |
-| A person gets no code | No membership, or an Employee invitation older than 7 days |
-| A save is refused | The file path is outside the Login Site's `CONTENT_FILES` rules |
+| A person gets no code | No membership on any site, or their only memberships are unconfirmed Employee invitations older than 7 days |
+| A save is refused | The file path is outside the Login Site's `CONTENT_FILES` rules. Check for a collection folder it doesn't allow, or `~` in a name |
 
 ## When a client leaves
 
