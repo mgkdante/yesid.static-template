@@ -1,0 +1,5 @@
+{
+ "extends": "$app/tsconfig",
+ "include": ["src", "tests", "scripts", "*.ts"], "exclude": ["node_modules", "build"],
+ "compilerOptions": {"strict": true, "allowImportingTsExtensions": true, "resolveJsonModule": true, "esModuleInterop": true, "skipLibCheck": true, "types": ["$app/types", "bun", "node"]}
+}
