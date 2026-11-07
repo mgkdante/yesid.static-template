@@ -57,7 +57,7 @@ test('llms.txt lists pages by title and description, under each language, and st
 });
 test('generated pages carry the social metadata, and crawlers may read the noindex on the admin page', () => {
   for (const { code, ogLocale } of site.languages) {
-    const html = read(`build${map.path('home', code)}index.html`);
+    const html = read(`build${decodeURI(map.path('home', code)!)}index.html`);
     expect(html).toContain('hreflang="x-default"');
     if (ogLocale) expect(html).toContain(`property="og:locale" content="${ogLocale}"`);
     expect(html).toContain('name="twitter:card"');

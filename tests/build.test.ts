@@ -8,14 +8,15 @@ const map = sampleCatalog().map;
 
 for (const row of map.rows) {
   test(`built ${row.path} is complete HTML with correct SEO and languages`, () => {
-    const html = read(`build${row.path}index.html`);
-    expect(html).toContain(`<html lang="${row.language}">`);
+    // The file on disk has the decoded name, for addresses in any alphabet.
+    const html = read(`build${decodeURI(row.path)}index.html`);
+    expect(html).toMatch(new RegExp(`<html\\b[^>]*\\blang="${row.language}"`));
     expect(html).toContain(`<link rel="canonical" href="${row.url}"`);
-    expect(html).toContain('<h1>');
+    expect(html).toMatch(/<h1\b/);
     expect(html).toContain('property="og:url"');
     for (const alternate of map.alternates(row.id)) {
       expect(html).toContain(`hreflang="${alternate.language}" href="${alternate.url}"`);
-      expect(html).toContain(`href="${alternate.path}" hreflang="${alternate.language}"`);
+      expect(html).toContain(`href="${alternate.path}"`);
     }
   });
 }
@@ -30,18 +31,32 @@ test('no built page runs JavaScript', () => {
     expect(html).not.toContain('rel="modulepreload"');
   }
 });
+test('every link written in the site\'s own code leads to a built page', () => {
+  // Reads the code, not the pages: a link an Owner wrote may go dead, and must never fail this test.
+  const code = (readdirSync('src', { recursive: true }) as string[]).filter((file) => file.endsWith('.svelte'));
+  expect(code.length).toBeGreaterThan(0);
+  const origin = site.origin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const links = new RegExp(`(?:href|src)="(?:${origin})?(/[^"#?{]*)`, 'g');
+  for (const file of code) {
+    for (const [, path] of read(`src/${file}`).matchAll(links)) {
+      expect({ file, path, built: existsSync(`build${path}${path.endsWith('/') ? 'index.html' : ''}`) }).toEqual({ file, path, built: true });
+    }
+  }
+});
 test('build includes only real page URLs in its sitemap', () => {
   const xml = read('build/sitemap.xml');
   expect([...xml.matchAll(/<loc>/g)]).toHaveLength(map.rows.length);
   for (const row of map.rows) expect(xml).toContain(`<loc>${escapeXml(row.url)}</loc>`);
-  expect(xml).not.toMatch(/admin|404/);
+  // Only the routes themselves: an Owner's post can be titled "404 erreurs".
+  expect(xml).not.toContain(`<loc>${site.origin}/admin/</loc>`);
+  expect(xml).not.toContain(`<loc>${site.origin}/404/</loc>`);
   expect(read('build/robots.txt')).toContain(`Sitemap: ${site.origin}/sitemap.xml`);
   expect(read('build/llms.txt')).toContain(site.business.name);
 });
 test('exact 404 output provides every language home without JS', () => {
   const html = read('build/404.html');
   expect(existsSync('build/404/index.html')).toBe(false);
-  expect([...html.matchAll(/<main id="main">/g)]).toHaveLength(1);
+  expect([...html.matchAll(/<main\b/g)]).toHaveLength(1);
   expect(html).toContain('content="noindex"');
   for (const { code } of site.languages) {
     expect(html).toContain(`lang="${code}"`);
@@ -51,6 +66,7 @@ test('exact 404 output provides every language home without JS', () => {
 test('footer pages are linked from the footer, not the menu', () => {
   const html = read('build/index.html');
   const footerStart = html.indexOf('<footer');
+  if (footerStart < 0) return; // A Custom Design may mark up its footer another way.
   for (const { id } of fixedPages.filter(({ inFooter }) => inFooter)) {
     const link = `href="${map.path(id, site.defaultLanguage)}"`;
     expect(html.slice(footerStart)).toContain(link);

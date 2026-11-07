@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test';
 import { readdirSync } from 'node:fs';
 import { parse } from 'yaml';
 import { publish } from '../scripts/deploy.ts';
+import { handleMissingFile, prerenderPolicy } from '../src/lib/prerender.ts';
 import { read } from './helpers.ts';
 
 interface Step {
@@ -130,6 +131,21 @@ test('the upload names its Worker and reports a failure', () => {
   expect(calls).toHaveLength(1);
   expect(calls[0].slice(-2)).toEqual(['--name', 'client-site']);
   expect(() => publish(settings, () => ({ exitCode: 1 }))).toThrow('upload failed');
+});
+
+test('a link or photo missing from Owner content warns, and any other build failure still stops', () => {
+  const warn = console.warn;
+  console.warn = () => {};
+  try {
+    expect(() => handleMissingFile({ status: 404, message: 'gone' })).not.toThrow();
+  } finally {
+    console.warn = warn;
+  }
+  expect(() => handleMissingFile({ status: 500, message: 'broken' })).toThrow('broken');
+  expect(prerenderPolicy).toEqual({ handleHttpError: handleMissingFile, handleMissingId: 'warn' });
+  const config = read('vite.config.ts').replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
+  expect(config).toContain('...prerenderPolicy');
+  expect(config).not.toMatch(/handleHttpError|handleMissingId/);
 });
 
 test('the built site carries its security headers', () => {
