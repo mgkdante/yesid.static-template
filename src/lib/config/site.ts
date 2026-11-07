@@ -15,7 +15,7 @@ export interface SiteSettings {
 export const site: SiteSettings = {
   slug: 'yesid.static-template',
   origin: 'https://example.invalid',
-  languages: [{ code: 'fr', label: 'Français' }, { code: 'en', label: 'English' }],
+  languages: [{ code: 'fr', label: 'Français' }, { code: 'en', label: 'English' }, { code: 'es', label: 'Español' }],
   defaultLanguage: 'fr',
   business: {
     name: 'Example Business',

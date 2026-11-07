@@ -7,10 +7,10 @@ export interface PageDefinition {
   readonly slugs: Readonly<Record<string, string>>;
 }
 export const fixedPages: readonly (PageDefinition & { id: FixedPageId })[] = [
-  { id: 'home', kind: 'fixed', slugs: { fr: '', en: '' } },
-  { id: 'about', kind: 'fixed', slugs: { fr: 'a-propos', en: 'about' } },
-  { id: 'legal', kind: 'fixed', slugs: { fr: 'mentions-legales', en: 'legal' } },
-  { id: 'blog', kind: 'fixed', slugs: { fr: 'blog', en: 'blog' } }
+  { id: 'home', kind: 'fixed', slugs: { fr: '', en: '', es: '' } },
+  { id: 'about', kind: 'fixed', slugs: { fr: 'a-propos', en: 'about', es: 'acerca-de' } },
+  { id: 'legal', kind: 'fixed', slugs: { fr: 'mentions-legales', en: 'legal', es: 'aviso-legal' } },
+  { id: 'blog', kind: 'fixed', slugs: { fr: 'blog', en: 'blog', es: 'blog' } }
 ];
 export function createSiteMap(settings: SiteSettings, definitions: readonly PageDefinition[]) {
   const languages = settings.languages.map(({ code }) => code);

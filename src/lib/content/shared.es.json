@@ -1,0 +1,15 @@
+{
+  "skip": "Ir al contenido",
+  "navigation": "Navegación",
+  "languages": "Idiomas",
+  "error": {
+    "title": "Página no encontrada",
+    "description": "No encontramos esta página.",
+    "home": "Inicio"
+  },
+  "admin": {
+    "title": "Iniciar sesión",
+    "description": "Abrir el servicio de inicio de sesión.",
+    "link": "Continuar"
+  }
+}

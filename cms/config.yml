@@ -13,6 +13,7 @@ i18n:
   locales:
     - fr
     - en
+    - es
   default_locale: fr
 collections:
   - name: pages
