@@ -7,7 +7,7 @@
   let { data } = $props();
 </script>
 <Seo title={data.page.title} description={data.page.description} canonical={data.row.url} alternates={data.alternates} />
-<Header text={data.text} navigation={data.navigation} alternates={data.alternates} />
+<Header text={data.menu} navigation={data.navigation} alternates={data.alternates} />
 {#if data.entry}
   {@const Detail = collectionViews[data.entry.collection].detail}
   <Detail entry={data.entry} />
@@ -17,4 +17,4 @@
 {:else}
   <Page page={data.page} />
 {/if}
-<Footer />
+<Footer text={data.footer} links={data.footerLinks} />

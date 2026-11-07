@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { canonicalJson } from '@yesid/content-contract';
 import { site } from '../src/lib/config/site.ts';
 import { readdirSync } from 'node:fs';
-import { siteTextContract } from '../src/lib/content/contract.ts';
+import { menuContract } from '../src/lib/content/contract.ts';
 import { contentGroups, createCmsConfig } from '../src/lib/content/cms.ts';
 import { loadCollections } from '../src/lib/content/collections.ts';
 import { collections } from '../src/lib/content/registry.ts';
@@ -23,16 +23,21 @@ test('every content file on disk can be edited, and every editable file exists',
   const onDisk = readdirSync(new URL('../src/lib/content/', import.meta.url)).filter((name) => name.endsWith('.json')).sort();
   expect(onDisk).toEqual(expected);
 });
-test('the editor groups come before the blog', () => {
+test('the editor is laid out like the site, with the groups before the blog', () => {
+  expect(contentGroups.map(({ label, files }) => [label, files.map(({ name }) => name)])).toEqual([
+    ['Pages', ['home', 'about', 'blog', 'projects']],
+    ['Partout sur le site', ['menu', 'footer', 'error']],
+    ['Textes légaux', ['privacy', 'terms']]
+  ]);
   expect(createCmsConfig().collections?.map(({ name }) => name)).toEqual(['pages', 'everywhere', 'legal', 'posts', 'projects']);
 });
 test('structure is checked while owner wording stays unrestricted', () => {
-  const source = JSON.parse(read(`src/lib/content/shared.${site.defaultLanguage}.json`));
-  expect(siteTextContract.safeParse({ ...source, skip: 'A'.repeat(10000) }).success).toBe(true);
-  expect(siteTextContract.safeParse({ ...source, skip: ' ' }).success).toBe(false);
-  expect(siteTextContract.safeParse({ ...source, typo: 'x' }).success).toBe(false);
+  const source = JSON.parse(read(`src/lib/content/menu.${site.defaultLanguage}.json`));
+  expect(menuContract.safeParse({ ...source, skip: 'A'.repeat(10000) }).success).toBe(true);
+  expect(menuContract.safeParse({ ...source, skip: ' ' }).success).toBe(false);
+  expect(menuContract.safeParse({ ...source, typo: 'x' }).success).toBe(false);
   const { skip, ...missing } = source;
-  expect(siteTextContract.safeParse(missing).success).toBe(false);
+  expect(menuContract.safeParse(missing).success).toBe(false);
 });
 test('committed CMS config equals the contract output', () => {
   const config = createCmsConfig();

@@ -5,13 +5,16 @@ export interface PageDefinition {
   readonly id: string;
   readonly kind: 'fixed' | 'entry';
   readonly slugs: Readonly<Record<string, string>>;
+  /** Fixed Pages reached from the footer rather than the menu, such as legal pages. */
+  readonly inFooter?: boolean;
 }
 export const fixedPages: readonly (PageDefinition & { id: FixedPageId })[] = [
   { id: 'home', kind: 'fixed', slugs: { fr: '', en: '', es: '' } },
   { id: 'about', kind: 'fixed', slugs: { fr: 'a-propos', en: 'about', es: 'acerca-de' } },
-  { id: 'legal', kind: 'fixed', slugs: { fr: 'mentions-legales', en: 'legal', es: 'aviso-legal' } },
   { id: 'projects', kind: 'fixed', slugs: { fr: 'projets', en: 'projects', es: 'proyectos' } },
-  { id: 'blog', kind: 'fixed', slugs: { fr: 'blog', en: 'blog', es: 'blog' } }
+  { id: 'blog', kind: 'fixed', slugs: { fr: 'blog', en: 'blog', es: 'blog' } },
+  { id: 'privacy', kind: 'fixed', inFooter: true, slugs: { fr: 'confidentialite', en: 'privacy', es: 'privacidad' } },
+  { id: 'terms', kind: 'fixed', inFooter: true, slugs: { fr: 'conditions', en: 'terms', es: 'terminos' } }
 ];
 export function createSiteMap(settings: SiteSettings, definitions: readonly PageDefinition[]) {
   const languages = settings.languages.map(({ code }) => code);
@@ -27,7 +30,7 @@ export function createSiteMap(settings: SiteSettings, definitions: readonly Page
     if (slug && !/^[\p{L}\p{N}-]+(?:\/[\p{L}\p{N}-]+)*$/u.test(slug)) throw new Error(`Invalid slug: ${slug}`);
     const prefix = language === settings.defaultLanguage ? '' : `${language}/`;
     const path = `/${prefix}${slug ? `${slug.split('/').map(encodeURIComponent).join('/')}/` : ''}`;
-    return [{ id: page.id, kind: page.kind, language, path, url: new URL(path, settings.origin).href }];
+    return [{ id: page.id, kind: page.kind, inFooter: page.inFooter ?? false, language, path, url: new URL(path, settings.origin).href }];
   }));
   if (new Set(rows.map(({ path }) => path)).size !== rows.length) throw new Error('Duplicate page path');
   if (new Set(definitions.map(({ id }) => id)).size !== definitions.length) throw new Error('Duplicate page identity');
@@ -42,7 +45,8 @@ export function createSiteMap(settings: SiteSettings, definitions: readonly Page
       const current = rows.find((row) => row.path === path);
       return current ? find(current.id, language)?.path : undefined;
     },
-    navigation: (language: string) => rows.filter((row) => row.language === language && row.kind === 'fixed')
+    navigation: (language: string) => rows.filter((row) => row.language === language && row.kind === 'fixed' && !row.inFooter),
+    footerLinks: (language: string) => rows.filter((row) => row.language === language && row.inFooter)
   };
 }
 export type SiteMap = ReturnType<typeof createSiteMap>;
