@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test';
 import { existsSync } from 'node:fs';
 import { loginUrl, site, workerName } from '../src/lib/config/site.ts';
 import { escapeXml } from '../src/lib/seo.ts';
+import { fixedPages } from '../src/lib/site-map.ts';
 import { read, sampleCatalog } from './helpers.ts';
 const map = sampleCatalog().map;
 
@@ -37,12 +38,14 @@ test('exact 404 output provides every language home without JS', () => {
     expect(html).toContain(`href="${map.path('home', code)}"`);
   }
 });
-test('legal pages are linked from the footer, not the menu', () => {
+test('footer pages are linked from the footer, not the menu', () => {
   const html = read('build/index.html');
-  const footer = html.slice(html.indexOf('<footer'));
-  const privacy = `href="${map.path('privacy', site.defaultLanguage)}"`;
-  expect(footer).toContain(privacy);
-  expect(html.slice(0, html.indexOf('<footer'))).not.toContain(privacy);
+  const footerStart = html.indexOf('<footer');
+  for (const { id } of fixedPages.filter(({ inFooter }) => inFooter)) {
+    const link = `href="${map.path(id, site.defaultLanguage)}"`;
+    expect(html.slice(footerStart)).toContain(link);
+    expect(html.slice(0, footerStart)).not.toContain(link);
+  }
 });
 test('admin uses a noindex meta refresh and visible login link', () => {
   const html = read('build/admin/index.html');
