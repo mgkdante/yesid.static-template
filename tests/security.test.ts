@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { parsePost } from '../src/lib/content/posts.ts';
+import { collections } from '../src/lib/content/registry.ts';
 import { renderMarkdown } from '../src/lib/content/markdown.ts';
 import { businessJsonLd, safeJson } from '../src/lib/seo.ts';
 import { site } from '../src/lib/config/site.ts';
@@ -24,7 +24,7 @@ test('JSON embedded in head cannot close its script', () => {
 });
 
 test('a symbolic title remains valid wording and has an identity-based path', () => {
-  const post = parsePost(`entry.${site.defaultLanguage}.md`, `---\ntitle: '✨'\ndescription: 'x'\ndate: '2026-01-01'\nphoto: ''\nphotoAlt: 'x'\n---\nBody`, [site.defaultLanguage]);
-  expect(post.title).toBe('✨');
-  expect(post.slug).toMatch(/^post-/);
+  const post = collections[0].parse(`entry.${site.defaultLanguage}.md`, `---\ntitle: '✨'\ndescription: 'x'\ndate: '2026-01-01'\nphoto: ''\nphotoAlt: 'x'\n---\nBody`, [site.defaultLanguage]);
+  expect(post.content.title).toBe('✨');
+  expect(post.slug).toMatch(/^entry-/);
 });

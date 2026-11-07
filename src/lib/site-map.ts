@@ -3,13 +3,14 @@ import type { FixedPageId } from './content/contract.ts';
 
 export interface PageDefinition {
   readonly id: string;
-  readonly kind: 'fixed' | 'post';
+  readonly kind: 'fixed' | 'entry';
   readonly slugs: Readonly<Record<string, string>>;
 }
 export const fixedPages: readonly (PageDefinition & { id: FixedPageId })[] = [
   { id: 'home', kind: 'fixed', slugs: { fr: '', en: '', es: '' } },
   { id: 'about', kind: 'fixed', slugs: { fr: 'a-propos', en: 'about', es: 'acerca-de' } },
   { id: 'legal', kind: 'fixed', slugs: { fr: 'mentions-legales', en: 'legal', es: 'aviso-legal' } },
+  { id: 'projects', kind: 'fixed', slugs: { fr: 'projets', en: 'projects', es: 'proyectos' } },
   { id: 'blog', kind: 'fixed', slugs: { fr: 'blog', en: 'blog', es: 'blog' } }
 ];
 export function createSiteMap(settings: SiteSettings, definitions: readonly PageDefinition[]) {
