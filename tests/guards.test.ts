@@ -1,21 +1,26 @@
 import { expect, test } from 'bun:test';
 import { readdirSync } from 'node:fs';
 import { parse } from 'yaml';
+import { publish } from '../scripts/deploy.ts';
 import { read } from './helpers.ts';
 
 interface Step {
   readonly name?: string;
+  readonly if?: string;
   readonly uses?: string;
   readonly run?: string;
   readonly with?: Readonly<Record<string, unknown>>;
   readonly env?: Readonly<Record<string, string>>;
+  readonly 'continue-on-error'?: unknown;
 }
 interface Job {
   readonly if?: string;
   readonly needs?: string | readonly string[];
   readonly env?: unknown;
   readonly permissions?: unknown;
+  readonly uses?: string;
   readonly steps: readonly Step[];
+  readonly 'continue-on-error'?: unknown;
 }
 interface Workflow {
   readonly on: Readonly<Record<string, unknown>>;
@@ -24,9 +29,10 @@ interface Workflow {
   readonly jobs: Readonly<Record<string, Job>>;
 }
 
-const workflowFiles = readdirSync('.github/workflows').filter((file) => file.endsWith('.yml'));
+const workflowFiles = readdirSync('.github/workflows').filter((file) => /\.ya?ml$/.test(file));
 const workflow = (file: string) => parse(read(`.github/workflows/${file}`)) as Workflow;
-const stepsOf = (file: string) => Object.values(workflow(file).jobs).flatMap(({ steps }) => steps);
+// A job that calls a reusable workflow has `uses` and no steps.
+const stepsOf = (file: string) => Object.values(workflow(file).jobs).flatMap(({ steps }) => steps ?? []);
 const runIndex = (steps: readonly Step[], command: string) => steps.findIndex(({ run }) => run === command);
 const usesIndex = (steps: readonly Step[], action: string) => steps.findIndex(({ uses }) => uses?.startsWith(`actions/${action}@`));
 
@@ -34,10 +40,26 @@ test('every workflow reads the repository only, pins its actions and keeps no cr
   expect(workflowFiles.length).toBeGreaterThan(0);
   for (const file of workflowFiles) {
     expect({ file, permissions: workflow(file).permissions }).toEqual({ file, permissions: { contents: 'read' } });
+    for (const [name, job] of Object.entries(workflow(file).jobs)) {
+      if (job.uses) expect(job.uses).toMatch(/@[0-9a-f]{40}$/);
+      // The failure alert is the one job allowed more, and its own test holds it to issues alone.
+      if (`${file}/${name}` !== 'deploy.yml/alert') expect({ file, name, permissions: job.permissions }).toEqual({ file, name, permissions: undefined });
+    }
     for (const { uses, with: inputs } of stepsOf(file)) {
       if (!uses) continue;
       expect(uses).toMatch(/@[0-9a-f]{40}$/);
       if (uses.startsWith('actions/checkout@')) expect(inputs?.['persist-credentials']).toBe(false);
+    }
+  }
+});
+
+test('a failed check or test stops its workflow', () => {
+  for (const file of ['ci.yml', 'deploy.yml']) {
+    for (const job of Object.values(workflow(file).jobs)) {
+      expect(job['continue-on-error']).toBeUndefined();
+      expect(job.steps.filter((step) => step['continue-on-error'] !== undefined)).toEqual([]);
+      const checks = job.steps.filter(({ run }) => run === 'bun run check' || run === 'bun run test');
+      expect(checks.filter((step) => step.if !== undefined)).toEqual([]);
     }
   }
 });
@@ -94,11 +116,20 @@ test('a failed publish opens an issue, from a job that runs no repository code',
   for (const job of [build, deploy]) expect(job.permissions).toBeUndefined();
 });
 
-test('the upload refuses the sample address first and names its Worker', () => {
-  const script = read('scripts/deploy.ts');
-  expect(script.indexOf('assertPublishable(site)')).toBeGreaterThan(-1);
-  expect(script.indexOf('assertPublishable(site)')).toBeLessThan(script.indexOf('Bun.spawnSync'));
-  expect(script).toContain("'--name', workerName(site.slug)");
+test('the upload refuses the sample address before running anything', () => {
+  const calls: string[][] = [];
+  const run = (command: string[]) => { calls.push(command); return { exitCode: 0 }; };
+  expect(() => publish({ origin: 'https://example.invalid', slug: 'client.site' }, run)).toThrow('real origin');
+  expect(calls).toEqual([]);
+});
+
+test('the upload names its Worker and reports a failure', () => {
+  const calls: string[][] = [];
+  const settings = { origin: 'https://client.example.test', slug: 'client.site' };
+  publish(settings, (command) => { calls.push(command); return { exitCode: 0 }; });
+  expect(calls).toHaveLength(1);
+  expect(calls[0].slice(-2)).toEqual(['--name', 'client-site']);
+  expect(() => publish(settings, () => ({ exitCode: 1 }))).toThrow('upload failed');
 });
 
 test('the built site carries its security headers', () => {

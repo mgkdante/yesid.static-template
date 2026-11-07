@@ -25,7 +25,7 @@ test('no built page runs JavaScript', () => {
   expect(pages.length).toBeGreaterThanOrEqual(map.rows.length);
   for (const file of pages) {
     const html = read(`build/${file}`);
-    const scripts = [...html.matchAll(/<script\b[^>]*>/gi)].map(([tag]) => tag).filter((tag) => !tag.includes('type="application/ld+json"'));
+    const scripts = [...html.matchAll(/<script\b[^>]*>/gi)].map(([tag]) => tag).filter((tag) => tag !== '<script type="application/ld+json">');
     expect({ file, scripts }).toEqual({ file, scripts: [] });
     expect(html).not.toContain('rel="modulepreload"');
   }
