@@ -1,6 +1,7 @@
 import { cmsConfig, type ContentFile, type ContentFileGroup } from '@yesid/content-contract';
+import { collections } from './registry.ts';
 import { site } from '../config/site.ts';
-import { pageContract, postContract, siteTextContract } from './contract.ts';
+import { pageContract, siteTextContract } from './contract.ts';
 
 const contentFile = (name: string, label: string, contract: ContentFile['contract']): ContentFile => ({
   name,
@@ -18,7 +19,8 @@ export const contentGroups: readonly ContentFileGroup[] = [
     files: [
       contentFile('home', 'Accueil', pageContract),
       contentFile('about', 'Page fixe', pageContract),
-      contentFile('blog', 'Page du blog', pageContract)
+      contentFile('blog', 'Page du blog', pageContract),
+      contentFile('projects', 'Page des projets', pageContract)
     ]
   },
   {
@@ -42,5 +44,5 @@ export const createCmsConfig = () => cmsConfig({
   locales: site.languages.map(({ code }) => code),
   defaultLocale: site.defaultLanguage,
   fileGroups: contentGroups,
-  collections: [{ name: 'posts', label: 'Blog', folder: 'src/lib/content/posts', contract: postContract }]
+  collections: collections.map(({ cms }) => cms)
 });

@@ -76,6 +76,24 @@ collections:
             label: Texte
             i18n: true
             widget: text
+      - name: projects
+        label: Page des projets
+        file: "src/lib/content/projects.{{locale}}.json"
+        format: json
+        i18n: true
+        fields:
+          - name: title
+            label: Titre
+            i18n: true
+            widget: string
+          - name: description
+            label: Description pour les moteurs de recherche
+            i18n: true
+            widget: text
+          - name: body
+            label: Texte
+            i18n: true
+            widget: text
   - name: everywhere
     label: Partout sur le site
     icon: public
@@ -193,5 +211,35 @@ collections:
         widget: text
       - name: body
         label: Texte
+        i18n: true
+        widget: richtext
+  - name: projects
+    label: Projets
+    folder: src/lib/content/projects
+    create: true
+    extension: md
+    format: yaml-frontmatter
+    i18n: true
+    fields:
+      - name: name
+        label: Nom du projet
+        i18n: true
+        widget: string
+      - name: summary
+        label: Résumé
+        i18n: true
+        widget: text
+      - name: services
+        label: Services
+        widget: list
+        i18n: true
+        collapsed: true
+        field:
+          name: value
+          label: Service
+          i18n: true
+          widget: string
+      - name: body
+        label: Présentation du projet
         i18n: true
         widget: richtext

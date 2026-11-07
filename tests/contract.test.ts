@@ -4,8 +4,9 @@ import { site } from '../src/lib/config/site.ts';
 import { readdirSync } from 'node:fs';
 import { siteTextContract } from '../src/lib/content/contract.ts';
 import { contentGroups, createCmsConfig } from '../src/lib/content/cms.ts';
-import { validateSharedPosts } from '../src/lib/content/posts.ts';
-import { read, samplePosts } from './helpers.ts';
+import { loadCollections } from '../src/lib/content/collections.ts';
+import { collections } from '../src/lib/content/registry.ts';
+import { read, sampleSources } from './helpers.ts';
 
 const contentFiles = contentGroups.flatMap((group) => group.files);
 for (const { code } of site.languages) {
@@ -23,7 +24,7 @@ test('every content file on disk can be edited, and every editable file exists',
   expect(onDisk).toEqual(expected);
 });
 test('the editor groups come before the blog', () => {
-  expect(createCmsConfig().collections?.map(({ name }) => name)).toEqual(['pages', 'everywhere', 'legal', 'posts']);
+  expect(createCmsConfig().collections?.map(({ name }) => name)).toEqual(['pages', 'everywhere', 'legal', 'posts', 'projects']);
 });
 test('structure is checked while owner wording stays unrestricted', () => {
   const source = JSON.parse(read(`src/lib/content/shared.${site.defaultLanguage}.json`));
@@ -46,9 +47,11 @@ test('committed CMS config equals the contract output', () => {
   expect(fields.find((field) => field.name === 'date')?.i18n).toBe('duplicate');
   expect(fields.find((field) => field.name === 'photo')?.i18n).toBe('duplicate');
 });
-test('all posts parse and shared values agree across translations', () => {
-  const posts = samplePosts();
-  expect(() => validateSharedPosts(posts)).not.toThrow();
-  const first = posts[0];
-  expect(() => validateSharedPosts([first, { ...first, language: 'fixture', date: '2000-01-01' }])).toThrow('Shared date');
+test('all collections validate their contracts and shared fields', () => {
+  const sources = sampleSources();
+  const languages = site.languages.map(({ code }) => code);
+  expect(() => loadCollections(collections, sources, languages)).not.toThrow();
+  const file = Object.keys(sources).find((file) => file.startsWith('./posts/'))!;
+  const invalid = { ...sources, [file]: sources[file].replace(/date:.*\n/, "date: '2000-01-01'\n") };
+  expect(() => loadCollections(collections, invalid, languages)).toThrow('Shared fields differ');
 });
