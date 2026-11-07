@@ -1,0 +1,185 @@
+backend:
+  name: github
+  repo: mgkdante/yesid.static-template
+  branch: main
+  base_url: https://login.yesid.dev
+  auth_endpoint: auth/popup
+  api_root: https://login.yesid.dev
+  graphql_api_root: https://login.yesid.dev
+media_folder: static/images/uploads
+public_folder: /images/uploads
+i18n:
+  structure: multiple_files
+  locales:
+    - fr
+    - en
+  default_locale: fr
+singletons:
+  - name: site-text
+    label: Texte du site
+    file: "src/lib/content/{{locale}}.json"
+    format: json
+    i18n: true
+    fields:
+      - name: skip
+        label: Aller au contenu
+        i18n: true
+        widget: string
+      - name: navigation
+        label: Navigation
+        i18n: true
+        widget: string
+      - name: languages
+        label: Langues
+        i18n: true
+        widget: string
+      - name: error
+        label: Page introuvable
+        i18n: true
+        widget: object
+        collapsed: true
+        fields:
+          - name: title
+            label: Titre
+            i18n: true
+            widget: string
+          - name: description
+            label: Description
+            i18n: true
+            widget: text
+          - name: home
+            label: Retour
+            i18n: true
+            widget: string
+      - name: admin
+        label: Connexion
+        i18n: true
+        widget: object
+        collapsed: true
+        fields:
+          - name: title
+            label: Titre
+            i18n: true
+            widget: string
+          - name: description
+            label: Description
+            i18n: true
+            widget: text
+          - name: link
+            label: Lien
+            i18n: true
+            widget: string
+  - name: pages
+    label: Pages fixes
+    file: "src/lib/content/pages.{{locale}}.json"
+    format: json
+    i18n: true
+    fields:
+      - name: home
+        label: Accueil
+        i18n: true
+        widget: object
+        collapsed: true
+        fields:
+          - name: title
+            label: Titre
+            i18n: true
+            widget: string
+          - name: description
+            label: Description pour les moteurs de recherche
+            i18n: true
+            widget: text
+          - name: body
+            label: Texte
+            i18n: true
+            widget: text
+      - name: about
+        label: Page fixe
+        i18n: true
+        widget: object
+        collapsed: true
+        fields:
+          - name: title
+            label: Titre
+            i18n: true
+            widget: string
+          - name: description
+            label: Description pour les moteurs de recherche
+            i18n: true
+            widget: text
+          - name: body
+            label: Texte
+            i18n: true
+            widget: text
+      - name: legal
+        label: Mentions légales
+        i18n: true
+        widget: object
+        collapsed: true
+        fields:
+          - name: title
+            label: Titre
+            i18n: true
+            widget: string
+          - name: description
+            label: Description pour les moteurs de recherche
+            i18n: true
+            widget: text
+          - name: body
+            label: Texte
+            i18n: true
+            widget: text
+      - name: blog
+        label: Blog
+        i18n: true
+        widget: object
+        collapsed: true
+        fields:
+          - name: title
+            label: Titre
+            i18n: true
+            widget: string
+          - name: description
+            label: Description pour les moteurs de recherche
+            i18n: true
+            widget: text
+          - name: body
+            label: Texte
+            i18n: true
+            widget: text
+collections:
+  - name: posts
+    label: Blog
+    folder: src/lib/content/posts
+    create: true
+    extension: md
+    format: yaml-frontmatter
+    i18n: true
+    fields:
+      - name: title
+        label: Titre
+        i18n: true
+        widget: string
+      - name: description
+        label: Description pour les moteurs de recherche
+        i18n: true
+        widget: text
+      - name: date
+        label: Date
+        i18n: duplicate
+        widget: datetime
+        format: YYYY-MM-DD
+        time_format: false
+      - name: photo
+        label: Photo
+        i18n: duplicate
+        widget: image
+        required: false
+      - name: photoAlt
+        label: Description de la photo
+        i18n: true
+        widget: text
+      - name: body
+        label: Texte
+        i18n: true
+        widget: richtext

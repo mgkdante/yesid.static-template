@@ -1,0 +1,15 @@
+{
+  "skip": "Skip to content",
+  "navigation": "Navigation",
+  "languages": "Languages",
+  "error": {
+    "title": "Page not found",
+    "description": "This page could not be found.",
+    "home": "Home"
+  },
+  "admin": {
+    "title": "Sign in",
+    "description": "Open the login service.",
+    "link": "Continue"
+  }
+}

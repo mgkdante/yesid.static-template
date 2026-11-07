@@ -1,0 +1,15 @@
+{
+  "skip": "Aller au contenu",
+  "navigation": "Navigation",
+  "languages": "Langues",
+  "error": {
+    "title": "Page introuvable",
+    "description": "Cette page est introuvable.",
+    "home": "Accueil"
+  },
+  "admin": {
+    "title": "Connexion",
+    "description": "Ouvrir le service de connexion.",
+    "link": "Continuer"
+  }
+}
