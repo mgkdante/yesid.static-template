@@ -9,6 +9,7 @@ test('Markdown removes executable HTML and dangerous links', () => {
   expect(html).toContain('<strong>Text</strong>');
   expect(html).not.toMatch(/<script|onerror|javascript:|<iframe/i);
   expect(renderMarkdown('`<script>`')).toContain('&lt;script&gt;');
+  expect(renderMarkdown('Text <span>inline</span>')).not.toContain('<span>');
 });
 test('JSON-LD contains only provided business facts', () => {
   const minimal = businessJsonLd({ name: site.business.name });

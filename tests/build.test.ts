@@ -31,6 +31,7 @@ test('build includes only real page URLs in its sitemap', () => {
 test('exact 404 output provides every language home without JS', () => {
   const html = read('build/404.html');
   expect(existsSync('build/404/index.html')).toBe(false);
+  expect([...html.matchAll(/<main id="main">/g)]).toHaveLength(1);
   expect(html).toContain('content="noindex"');
   for (const { code } of site.languages) {
     expect(html).toContain(`lang="${code}"`);

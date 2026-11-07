@@ -18,7 +18,7 @@ The sample business is fake. `example.invalid` cannot be a production destinatio
 
 ## Blog editing
 
-Posts live in `src/lib/content/posts/<entry>.<language>.md`. The entry filename ties translations together. Titles create URL slugs; changing a title changes its URL, so preserve old links with redirects when editing a live post. The CMS collection uses multiple files, shared date and optional shared photo. Blank `photo` means no cover. Supply `photoAlt` when adding a photo. Dates and photos must agree across translations. Markdown becomes HTML at build time through Marked followed by an explicit sanitize-html allowlist; script elements, event handlers, dangerous URL protocols and embedded frames are removed.
+Posts live in `src/lib/content/posts/<entry>.<language>.md`. The entry filename ties translations together. Titles create URL slugs; changing a title changes its URL, so preserve old links with redirects when editing a live post. The CMS collection uses multiple files, shared date and optional shared photo. Blank `photo` means no cover. Supply `photoAlt` when adding a photo. Dates and photos must agree across translations. Markdown becomes HTML at build time through Marked with raw HTML removed, followed by an explicit sanitize-html allowlist; script elements, event handlers, dangerous URL protocols and embedded frames are removed.
 
 Photos upload to `static/images/uploads` and are served from `/images/uploads`. This Foundation does not resize images or generate social cards.
 
