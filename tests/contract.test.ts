@@ -48,7 +48,7 @@ test('every Fixed Page has its editor entry, and the groups come before the fold
 });
 test('the site slug is one the Login Site can serve', () => {
   // Mirrors validSlug in the Login Site's src/sites.ts. A reserved word there is one of its own paths.
-  const reserved = ['auth', 'api', 'admin', 'login', 'editor', 'account', 'privacy', 'terms'];
+  const reserved = ['auth', 'api', 'admin', 'login', 'editor', 'account', 'privacy', 'terms', 'legal'];
   expect(site.slug).toMatch(/^[a-z0-9][a-z0-9.-]{0,62}$/);
   expect(reserved).not.toContain(site.slug);
 });

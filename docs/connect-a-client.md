@@ -12,7 +12,7 @@ The values below are placeholders. Never commit a real person's address, a clien
 
 ## 1. Choose the slug
 
-It must match `^[a-z0-9][a-z0-9.-]{0,62}$` and must not be one of the Login Site's own paths: `auth`, `api`, `admin`, `login`, `editor`, `account`, `privacy`, `terms`. `bun run test` checks this.
+It must match `^[a-z0-9][a-z0-9.-]{0,62}$` and must not be one of the Login Site's own paths: `auth`, `api`, `admin`, `login`, `editor`, `account`, `privacy`, `terms`, `legal`. `bun run test` checks this.
 
 ## 2. Create the repository
 

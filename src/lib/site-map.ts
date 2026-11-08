@@ -28,6 +28,8 @@ export function createSiteMap(settings: SiteSettings, definitions: readonly Page
       return [];
     }
     if (slug && !/^[\p{L}\p{N}-]+(?:\/[\p{L}\p{N}-]+)*$/u.test(slug)) throw new Error(`Invalid slug: ${slug}`);
+    // Each segment becomes a folder name in the build, and file systems refuse long ones.
+    if (slug.split('/').some((segment) => new TextEncoder().encode(segment).length > 80)) throw new Error(`Slug segment over 80 bytes: ${slug}`);
     const prefix = language === settings.defaultLanguage ? '' : `${language}/`;
     const path = `/${prefix}${slug ? `${slug.split('/').map(encodeURIComponent).join('/')}/` : ''}`;
     return [{ id: page.id, kind: page.kind, inFooter: page.inFooter ?? false, language, path, url: new URL(path, settings.origin).href }];
