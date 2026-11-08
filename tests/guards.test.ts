@@ -1,9 +1,15 @@
 import { expect, test } from 'bun:test';
-import { readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { parse } from 'yaml';
 import { publish } from '../scripts/deploy.ts';
+import { faviconIco } from '../scripts/build-icons.ts';
+import { site } from '../src/lib/config/site.ts';
 import { handleMissingFile, prerenderPolicy } from '../src/lib/prerender.ts';
 import { read } from './helpers.ts';
+
+const placeholderArtwork = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#6b7280"/><rect x="18" y="18" width="28" height="28" rx="6" fill="#f9fafb"/></svg>';
+const clientSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10" fill="#0a7"/></svg>';
+const clientIco = faviconIco(clientSvg);
 
 interface Step {
   readonly name?: string;
@@ -133,17 +139,34 @@ test('the failure message is written before anything that may be refused, which 
 test('the upload refuses the sample address before running anything', () => {
   const calls: string[][] = [];
   const run = (command: string[]) => { calls.push(command); return { exitCode: 0 }; };
-  expect(() => publish({ origin: 'https://example.invalid', slug: 'client.site' }, run)).toThrow('real origin');
+  expect(() => publish({ origin: 'https://example.invalid', slug: 'client.site' }, run, clientIco)).toThrow('real origin');
   expect(calls).toEqual([]);
+});
+
+test('the upload refuses the starter\'s placeholder artwork, however its file is written', () => {
+  // Samples, not the repository's file: a client's own mark must never fail this test.
+  for (const svg of [placeholderArtwork, placeholderArtwork.replace('><rect', '>\n  <rect'), placeholderArtwork.replace('"#6b7280"', "'#6b7280'")]) {
+    const calls: string[][] = [];
+    const run = (command: string[]) => { calls.push(command); return { exitCode: 0 }; };
+    expect(() => publish({ origin: 'https://client.example.test', slug: 'client.site' }, run, faviconIco(svg))).toThrow('sample mark');
+    expect(calls).toEqual([]);
+  }
+  const ownArtworkWithAComment = clientSvg.replace('><rect', '><!-- replaced the placeholder mark --><rect');
+  expect(() => publish({ origin: 'https://client.example.test', slug: 'client.site' }, () => ({ exitCode: 0 }), faviconIco(ownArtworkWithAComment))).not.toThrow();
+});
+
+// Only in the starter: every client sets its own repository, so this can never run against a client's mark.
+test.if(site.repository === 'mgkdante/yesid.static-template')('the starter itself still carries the placeholder that publishing refuses', () => {
+  expect(() => publish({ origin: 'https://client.example.test', slug: 'client.site' }, () => ({ exitCode: 0 }), readFileSync('static/favicon.ico'))).toThrow('sample mark');
 });
 
 test('the upload names its Worker and reports a failure', () => {
   const calls: string[][] = [];
   const settings = { origin: 'https://client.example.test', slug: 'client.site' };
-  publish(settings, (command) => { calls.push(command); return { exitCode: 0 }; });
+  publish(settings, (command) => { calls.push(command); return { exitCode: 0 }; }, clientIco);
   expect(calls).toHaveLength(1);
   expect(calls[0].slice(-2)).toEqual(['--name', 'client-site']);
-  expect(() => publish(settings, () => ({ exitCode: 1 }))).toThrow('upload failed');
+  expect(() => publish(settings, () => ({ exitCode: 1 }), clientIco)).toThrow('upload failed');
 });
 
 test('a link or photo missing from Owner content warns, and any other build failure still stops', () => {

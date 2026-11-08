@@ -62,7 +62,7 @@ Set these in `config/site.ts`. All are optional, and nothing is emitted for a va
 
 - `languages[].shareImage`: a 1200 x 630 file in `static/`, per language. A Blog Post's cover replaces it on that post. Keep editable text and phone numbers off the card, because they go stale when an Owner edits. Open the image, then test the real link on a phone in each language.
 - `languages[].ogLocale`: the Open Graph locale.
-- `icons`: favicon and touch icon files in `static/`. They are part of the Custom Design, so this starter has none.
+- `icons`: icon files in `static/`. Every site serves `/favicon.ico` at its root beside its SVG icon, because icon services, and Plausible's site list through them, read only that file. The mark itself is part of the Custom Design: replace `static/favicon.svg` with the client's mark, then run `bun run icons`, which generates `static/favicon.ico` with 16, 32 and 48 px images. Any shape works: a wide or tall mark is centred in square images. The mark must be self-contained, because rendering uses no fonts and no other files: convert text to paths and embed images as data URIs, or the command stops and says which. A test fails if the two files don't match, and publishing refuses the starter's placeholder artwork. Touch icons and other sizes are per client.
 - `business.type`: a schema.org type, kept in code and out of the editor. `business.hours` feeds structured data from one place.
 
 ## Static output and 404 limit

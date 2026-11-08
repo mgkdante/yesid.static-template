@@ -10,6 +10,7 @@ Use Node 24 and Bun from `.bun-version`.
 - `bun run build`
 - `bun run cms:config`
 - `bun run content:format`
+- `bun run icons` regenerates `static/favicon.ico` from `static/favicon.svg`; keep both.
 
 Keep Business Facts and settings in `src/lib/config/site.ts`. Fixed Page identities and translated slugs belong to the Site Map. All language plumbing derives from settings. Owner-editable fields, types and checks originate in `src/lib/content/contract.ts`; use the released package, never copy it. Check structure only, never constrain wording. Values code depends on stay in code.
 

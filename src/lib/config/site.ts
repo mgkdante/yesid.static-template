@@ -56,7 +56,12 @@ export const site: SiteSettings = {
     email: 'hello@example.invalid',
     serviceArea: 'Example Area',
     hours: [{ days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '09:00', closes: '17:00' }]
-  }
+  },
+  // favicon.ico is generated from favicon.svg by `bun run icons`; keep both.
+  icons: [
+    { rel: 'icon', href: '/favicon.ico', sizes: '16x16 32x32 48x48' },
+    { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' }
+  ]
 };
 
 export const loginUrl = `https://login.yesid.dev/${site.slug}/`;
