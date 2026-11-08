@@ -7,7 +7,6 @@ The sample business is fake. `example.invalid` cannot be a production destinatio
 ## Documentation
 
 - [Architecture](https://yesid-dev.notion.site/4113e86306908194a644f493ac9ce7f7): how the Foundation works, checked against this repository. It covers the system and its parts, setup and testing, content and editing, routing and SEO, deployment and recovery, and the decisions and limits behind them.
-- [Training course](https://app.notion.com/p/4123e863069081b7bfecc606210cc8d1): six hands-on units for owning the template. It sits in the maintainer's private Notion workspace, so it opens only with access.
 
 ## Start a client site
 
