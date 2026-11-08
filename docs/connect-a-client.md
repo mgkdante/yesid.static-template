@@ -20,7 +20,7 @@ It must match `^[a-z0-9][a-z0-9.-]{0,62}$` and must not be one of the Login Site
 gh repo create <owner>/<repo> --private --template mgkdante/yesid.static-template --clone
 ```
 
-In `src/lib/config/site.ts`, set `slug`, `repository`, `origin`, the languages and the Business Facts. Set the Worker name in `wrangler.jsonc`. Replace `static/favicon.svg` with the client's mark and run `bun run icons`, so the site keeps serving `/favicon.ico` from it; publishing refuses the placeholder mark. Then run these and push to `main`:
+In `src/lib/config/site.ts`, set `slug`, `repository`, `origin`, the languages and the Business Facts. Set the Worker name in `wrangler.jsonc`. Replace `static/favicon.svg` with the client's mark, with text as paths and any image embedded, and run `bun run icons`, so the site keeps serving `/favicon.ico` from it; publishing refuses the placeholder mark. Then run these and push to `main`:
 
 ```sh
 bun install --frozen-lockfile
