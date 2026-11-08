@@ -2,7 +2,7 @@
 
 The invisible Foundation for a brochure or portfolio site: static SvelteKit 3, Svelte 5, TypeScript, languages, editable content, SEO and deploy checks. Every client gets a Custom Design. This repository intentionally has semantic HTML with no stylesheet, art, motion or visual identity. E-commerce belongs on Shopify.
 
-The sample business is fake. `example.invalid` cannot be a production destination. This repository is private and deployment is disabled unless explicitly enabled in GitHub.
+The sample business is fake. `example.invalid` cannot be a production destination. Deployment is disabled unless explicitly enabled in GitHub. Licence: [MIT](LICENSE). Security reports: see [SECURITY.md](SECURITY.md).
 
 ## Start a client site
 
