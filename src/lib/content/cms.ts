@@ -41,24 +41,13 @@ export const contentGroups: readonly ContentFileGroup[] = [
   }
 ];
 
-export function createCmsConfig() {
-  const config = cmsConfig({
-    repo: site.repository,
-    loginOrigin: 'https://login.yesid.dev',
-    siteSlug: site.slug,
-    locales: site.languages.map(({ code }) => code),
-    defaultLocale: site.defaultLanguage,
-    fileGroups: contentGroups,
-    collections: collections.map(({ cms }) => cms)
-  });
-  // The released contract package doesn't set it yet. A new entry's file name, and so its address, comes from this field.
-  const identifiers = new Map(collections.map(({ cms }) => [cms.name, 'identifierField' in cms ? cms.identifierField : undefined]));
-  if (!config.collections) return config;
-  return {
-    ...config,
-    collections: config.collections.map((collection) => {
-      const field = identifiers.get(collection.name);
-      return field ? { ...collection, identifier_field: field } : collection;
-    })
-  };
-}
+// Each collection's folder carries its `identifierField`, which the package writes out as `identifier_field`.
+export const createCmsConfig = () => cmsConfig({
+  repo: site.repository,
+  loginOrigin: 'https://login.yesid.dev',
+  siteSlug: site.slug,
+  locales: site.languages.map(({ code }) => code),
+  defaultLocale: site.defaultLanguage,
+  fileGroups: contentGroups,
+  collections: collections.map(({ cms }) => cms)
+});
