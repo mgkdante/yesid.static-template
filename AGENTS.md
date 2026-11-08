@@ -1,6 +1,6 @@
 # Working here
 
-Notion owns intent, decisions, standing rules and how to work with Yesito. Before agentic coding, read [LLMs](https://app.notion.com/p/4083e863069080df9e63d165128a1522), which routes to the rest, and this project's [Notion home](https://app.notion.com/p/4113e863069080debbc0d277c139afa2). Don't add standing rules here: this file keeps local commands and constraints only. Write to Notion only when the current task authorizes it.
+The maintainer's notes live in a private Notion workspace; outside contributors can ignore those links. Notion owns intent, decisions, standing rules and how to work with Yesito. Before agentic coding, read [LLMs](https://app.notion.com/p/4083e863069080df9e63d165128a1522), which routes to the rest, and this project's [Notion home](https://app.notion.com/p/4113e863069080debbc0d277c139afa2). Don't add standing rules here: this file keeps local commands and constraints only. Write to Notion only when the current task authorizes it.
 
 Use Node 24 and Bun from `.bun-version`.
 
