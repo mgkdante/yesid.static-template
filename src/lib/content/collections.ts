@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { parse } from 'yaml';
-import { contractFields, type CmsField } from '@yesid/content-contract';
+import { contractFields, type CmsField, type ContentFolder } from '@yesid/content-contract';
 
 export interface Entry<Name extends string = string, Content = unknown> {
   readonly id: string;
@@ -16,8 +16,12 @@ export interface Entry<Name extends string = string, Content = unknown> {
 export interface CollectionDefinition<E extends Entry = Entry> {
   readonly name: string;
   readonly listing: string;
-  /** `identifierField` names the field the editor makes a new entry's file name from, once, when it is first saved. */
-  readonly cms: { name: string; label: string; folder: string; contract: z.ZodObject; identifierField?: string };
+  /**
+   * The editor folder. Its `identifierField` names the field a new entry's file name comes from, once, on first save.
+   * `any`, as in the package's own `collections` input: `identifierField` makes the type invariant in its contract.
+   * Each folder is typed against its own contract in `defineCollection`, and `cmsConfig` checks the name.
+   */
+  readonly cms: ContentFolder<any>;
   readonly parse: (file: string, source: string, languages: readonly string[]) => E;
 }
 
@@ -76,7 +80,7 @@ export function defineCollection<const Name extends string, Contract extends z.Z
   metadata: (data: z.infer<Contract>) => Entry['metadata'];
   present: (data: z.infer<Contract>) => Content;
   /** The field a new entry's file name, and so its address, is made from. Required when the contract has no `title`. */
-  identifierField?: Extract<keyof z.infer<Contract>, string>;
+  identifierField?: ContentFolder<Contract>['identifierField'];
   slug?: (data: z.infer<Contract>, key: string) => string;
 }): CollectionDefinition<Entry<Name, Content>> & { readonly name: Name } {
   if (!/^[a-z][a-z0-9-]*$/.test(input.name)) throw new Error(`Invalid collection name: ${input.name}`);
@@ -88,12 +92,12 @@ export function defineCollection<const Name extends string, Contract extends z.Z
     throw new Error(`Collection ${input.name}: identifierField ${input.identifierField} is not in its contract`);
   }
   const fields = contractFields(input.contract);
+  const cms: ContentFolder<Contract> = {
+    name: input.name, label: input.label, folder: `src/lib/content/${input.name}`, contract: input.contract,
+    ...(input.identifierField ? { identifierField: input.identifierField } : {})
+  };
   return {
-    name: input.name, listing: input.listing,
-    cms: {
-      name: input.name, label: input.label, folder: `src/lib/content/${input.name}`, contract: input.contract,
-      ...(input.identifierField ? { identifierField: input.identifierField } : {})
-    },
+    name: input.name, listing: input.listing, cms,
     parse(file, source, languages) {
       const document = readDocument(file, source, languages);
       const body = (document.body || 'body' in input.contract.shape) ? { body: document.body } : {};

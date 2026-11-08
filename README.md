@@ -71,7 +71,7 @@ A single static `404.html` cannot select a language from an unknown request URL 
 
 - `config/site.ts`: Business Facts and settings.
 - `site-map.ts` and `collection-catalog.ts`: page identities, translated paths, available translations and queries.
-- `content/contract.ts`: editable shape, inferred types and CMS fields, using released `@yesid/content-contract` 0.4.0.
+- `content/contract.ts`: editable shape, inferred types and CMS fields, using released `@yesid/content-contract` 0.6.0, whose folders also carry each collection's `identifierField`.
 - `content/collections.ts`: generic parsing and contract-derived shared-field checks.
 - `content/registry.ts`: collection definitions and typed presentation data.
 - `content/index.ts`: build-time discovery and validation.
