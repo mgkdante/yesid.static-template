@@ -82,9 +82,11 @@ jobs:
           # Only this workflow's own issue counts: anyone with access can open one with this title.
           number=$(gh issue list --state open --limit 100 --json number,title,author \
             --jq "[.[] | select(.title == \"$title\" and .author.login == \"app/github-actions\")][0].number // empty")
+          # The message is written first. Assigning is best effort, so a refused assignment can't stop it.
           if [ -n "$number" ]; then
-            gh issue edit "$number" --add-assignee "$OWNER"
             gh issue comment "$number" --body "$BODY"
           else
-            gh issue create --title "$title" --assignee "$OWNER" --body "$BODY"
+            url=$(gh issue create --title "$title" --body "$BODY")
+            number="${url##*/}"
           fi
+          gh issue edit "$number" --add-assignee "$OWNER" || echo "::warning::Could not assign issue $number to $OWNER"

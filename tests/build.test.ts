@@ -28,7 +28,9 @@ test('no built page runs JavaScript', () => {
     const html = read(`build/${file}`);
     const scripts = [...html.matchAll(/<script\b[^>]*>/gi)].map(([tag]) => tag).filter((tag) => tag !== '<script type="application/ld+json">');
     expect({ file, scripts }).toEqual({ file, scripts: [] });
-    expect(html).not.toContain('rel="modulepreload"');
+    // Real elements only. Owner text is escaped, so its words can never form a tag and never trip this.
+    const preloads = [...html.matchAll(/<link\b[^>]*\brel=["']?modulepreload\b[^>]*>/gi)].map(([tag]) => tag);
+    expect({ file, preloads }).toEqual({ file, preloads: [] });
   }
 });
 test('every link written in the site\'s own code leads to a built page', () => {
@@ -36,7 +38,8 @@ test('every link written in the site\'s own code leads to a built page', () => {
   const code = (readdirSync('src', { recursive: true }) as string[]).filter((file) => file.endsWith('.svelte'));
   expect(code.length).toBeGreaterThan(0);
   const origin = site.origin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const links = new RegExp(`(?:href|src)="(?:${origin})?(/[^"#?{]*)`, 'g');
+  // Double-quoted, single-quoted or unquoted. A link built in an expression ({...}) isn't a literal and isn't read.
+  const links = new RegExp(`\\b(?:href|src)=["']?(?:${origin})?(/[^"'#?{\\s>]*)`, 'g');
   for (const file of code) {
     for (const [, path] of read(`src/${file}`).matchAll(links)) {
       expect({ file, path, built: existsSync(`build${path}${path.endsWith('/') ? 'index.html' : ''}`) }).toEqual({ file, path, built: true });

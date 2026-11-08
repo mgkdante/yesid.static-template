@@ -117,6 +117,19 @@ test('a failed publish opens an issue, from a job that runs no repository code',
   for (const job of [build, deploy]) expect(job.permissions).toBeUndefined();
 });
 
+test('the failure message is written before anything that may be refused, which can only warn', () => {
+  const script = workflow('deploy.yml').jobs.alert.steps.map(({ run }) => run ?? '').join('\n');
+  const lines = script.split('\n').map((line) => line.trim()).filter((line) => line.startsWith('gh ') || line.includes('$(gh '));
+  const writes = lines.findIndex((line) => /gh issue (comment|create)/.test(line));
+  const assigns = lines.map((line, index) => [line, index] as const).filter(([line]) => /--(add-)?assignee/.test(line));
+  expect(writes).toBeGreaterThan(-1);
+  for (const [line, index] of assigns) {
+    expect(index).toBeGreaterThan(writes);
+    expect(line).toMatch(/\|\|/);
+    expect(line).not.toMatch(/gh issue (comment|create)/);
+  }
+});
+
 test('the upload refuses the sample address before running anything', () => {
   const calls: string[][] = [];
   const run = (command: string[]) => { calls.push(command); return { exitCode: 0 }; };

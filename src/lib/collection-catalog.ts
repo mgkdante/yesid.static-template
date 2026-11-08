@@ -1,34 +1,39 @@
 import type { SiteSettings } from './config/site.ts';
 import { createSiteMap, type PageDefinition } from './site-map.ts';
-import { entrySlug, loadCollections, type CollectionDefinition, type Entry } from './content/collections.ts';
+import { byteLength, loadCollections, MAX_SLUG_BYTES, shorten, type CollectionDefinition, type Entry } from './content/collections.ts';
 
 /** Addresses the site's own routes and language prefixes already use. */
 const reservedRoots = (settings: SiteSettings) => ['admin', '404', ...settings.languages.map(({ code }) => code)];
 
+/** FNV-1a: a short code that depends only on its input, so it never changes when other entries come and go. */
+function shortCode(text: string): string {
+  let hash = 0x811c9dc5;
+  for (const byte of new TextEncoder().encode(text)) hash = Math.imul(hash ^ byte, 0x01000193) >>> 0;
+  return hash.toString(16).padStart(8, '0');
+}
+
 /**
- * Titles are the Owner's wording, so two entries may share one and neither may stop the site from publishing.
- * An entry whose file name matches its title claims the plain address first, so a newer twin can't move it.
- * Any other adds its file name.
+ * An address comes from the entry's file name, which the editor sets once when the entry is first saved.
+ * A plain file name, the kind the editor makes, is its own address, so it claims that address first and never moves.
+ * Anything else that lands on a taken address, such as a Fixed Page's slug or a file name with capitals,
+ * adds a short code from its own identity. The result stays within the folder-name limit.
  */
 function entryPaths(entries: readonly Entry[], parentOf: (entry: Entry) => string, settings: SiteSettings, pages: readonly PageDefinition[]) {
   const taken = new Set(settings.languages.flatMap(({ code }) => [
     ...pages.flatMap(({ slugs }) => slugs[code] === undefined ? [] : [`${code}:${slugs[code]}`]),
     ...reservedRoots(settings).map((root) => `${code}:${root}`)
   ]));
-  const fileSlugOf = (entry: Entry) => {
-    const key = entry.id.slice(entry.collection.length + 1);
-    return entrySlug(key, key);
-  };
-  const claimsFirst = (entry: Entry) => Number(fileSlugOf(entry) === entry.slug);
-  const ordered = [...entries].sort((a, b) => claimsFirst(b) - claimsFirst(a));
+  const keyOf = (entry: Entry) => entry.id.slice(entry.collection.length + 1);
+  const rank = (entry: Entry) => Number(entry.slug !== keyOf(entry));
+  const ordered = [...entries].sort((a, b) => rank(a) - rank(b) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   return new Map(ordered.map((entry) => {
-    const fileSlug = fileSlugOf(entry);
     const pathFor = (slug: string) => [parentOf(entry), slug].filter(Boolean).join('/');
     const isTaken = (slug: string) => taken.has(`${entry.language}:${pathFor(slug)}`);
     let slug = entry.slug;
-    // A title's own slug never holds `--`, so a later title can't land on an address made here and move this entry.
-    if (isTaken(slug)) slug = fileSlug.startsWith(slug) ? fileSlug : `${slug}--${fileSlug}`;
-    while (isTaken(slug)) slug = `${slug}--${fileSlug}`;
+    for (let attempt = 0; isTaken(slug); attempt += 1) {
+      const suffix = `--${shortCode(`${entry.id}#${attempt}`)}`;
+      slug = `${shorten(entry.slug, MAX_SLUG_BYTES - byteLength(suffix))}${suffix}`;
+    }
     taken.add(`${entry.language}:${pathFor(slug)}`);
     return [`${entry.id}/${entry.language}`, pathFor(slug)];
   }));

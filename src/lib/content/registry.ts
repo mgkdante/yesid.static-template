@@ -9,7 +9,7 @@ export const collections = [
     present: (data) => ({ ...data, html: renderMarkdown(data.body) })
   }),
   defineCollection({
-    name: 'projects', label: 'Projets', listing: 'projects', contract: projectContract,
+    name: 'projects', label: 'Projets', listing: 'projects', contract: projectContract, identifierField: 'name',
     metadata: (data) => ({ title: data.name, description: data.summary }),
     present: (data) => ({ ...data, html: renderMarkdown(data.body) })
   })

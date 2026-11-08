@@ -35,7 +35,7 @@ test('JSON embedded in head cannot close its script', () => {
   expect(safeJson(value)).not.toContain('<');
   expect(JSON.parse(safeJson(value))).toEqual(value);
 });
-test('a symbolic title remains valid wording and has an identity-based path', () => {
+test('a symbolic title remains valid wording, and a symbolic file name still gets a usable path', () => {
   const pages = defineCollection({
     name: 'notes', label: 'Notes', listing: 'notes',
     contract: z.strictObject({ title: line('Title') }),
@@ -44,5 +44,6 @@ test('a symbolic title remains valid wording and has an identity-based path', ()
   });
   const post = pages.parse('entry.fr.md', "---\ntitle: '✨'\n---\n", ['fr']);
   expect(post.content.title).toBe('✨');
-  expect(post.slug).toMatch(/^entry-/);
+  expect(post.slug).toBe('entry');
+  expect(pages.parse('✨.fr.md', "---\ntitle: '✨'\n---\n", ['fr']).slug).toMatch(/^entry-/);
 });

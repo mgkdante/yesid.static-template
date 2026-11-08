@@ -270,3 +270,4 @@ collections:
         label: Présentation du projet
         i18n: true
         widget: richtext
+    identifier_field: name

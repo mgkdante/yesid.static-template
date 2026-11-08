@@ -14,7 +14,8 @@ export interface Entry<Name extends string = string, Content = unknown> {
 export interface CollectionDefinition<E extends Entry = Entry> {
   readonly name: string;
   readonly listing: string;
-  readonly cms: { name: string; label: string; folder: string; contract: z.ZodObject };
+  /** `identifierField` names the field the editor makes a new entry's file name from, once, when it is first saved. */
+  readonly cms: { name: string; label: string; folder: string; contract: z.ZodObject; identifierField?: string };
   readonly parse: (file: string, source: string, languages: readonly string[]) => E;
 }
 
@@ -49,18 +50,18 @@ function readDocument(file: string, source: string, languages: readonly string[]
   return { key: identity[1], language: identity[2], front, body: document[2].trim() };
 }
 
-const MAX_SLUG_BYTES = 80;
-const byteLength = (text: string) => new TextEncoder().encode(text).length;
-/** A title can be any length, but an address becomes a folder name, which can't. */
-function shorten(slug: string): string {
+/** An address becomes a folder name, so every address segment stays within this many bytes. */
+export const MAX_SLUG_BYTES = 80;
+export const byteLength = (text: string) => new TextEncoder().encode(text).length;
+export function shorten(slug: string, maxBytes = MAX_SLUG_BYTES): string {
   const chars = Array.from(slug);
   let length = chars.length;
-  while (byteLength(chars.slice(0, length).join('')) > MAX_SLUG_BYTES) length -= 1;
-  return chars.slice(0, length).join('').replace(/-$/, '');
+  while (byteLength(chars.slice(0, length).join('')) > maxBytes) length -= 1;
+  return chars.slice(0, length).join('').replace(/-+$/, '');
 }
 
-export function entrySlug(title: string, key: string): string {
-  const slug = title.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase()
+export function entrySlug(text: string, key: string): string {
+  const slug = text.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '');
   return shorten(slug || `entry-${Array.from(key).map((char) => char.codePointAt(0)!.toString(16)).join('-')}`);
 }
@@ -72,13 +73,25 @@ export function defineCollection<const Name extends string, Contract extends z.Z
   contract: Contract;
   metadata: (data: z.infer<Contract>) => Entry['metadata'];
   present: (data: z.infer<Contract>) => Content;
+  /** The field a new entry's file name, and so its address, is made from. Required when the contract has no `title`. */
+  identifierField?: Extract<keyof z.infer<Contract>, string>;
   slug?: (data: z.infer<Contract>, key: string) => string;
 }): CollectionDefinition<Entry<Name, Content>> & { readonly name: Name } {
   if (!/^[a-z][a-z0-9-]*$/.test(input.name)) throw new Error(`Invalid collection name: ${input.name}`);
+  // Without one, the editor names new files with a random code, and that code becomes the public address.
+  if (!input.identifierField && !('title' in input.contract.shape)) {
+    throw new Error(`Collection ${input.name} needs identifierField: its contract has no title field`);
+  }
+  if (input.identifierField && !(input.identifierField in input.contract.shape)) {
+    throw new Error(`Collection ${input.name}: identifierField ${input.identifierField} is not in its contract`);
+  }
   const fields = contractFields(input.contract);
   return {
     name: input.name, listing: input.listing,
-    cms: { name: input.name, label: input.label, folder: `src/lib/content/${input.name}`, contract: input.contract },
+    cms: {
+      name: input.name, label: input.label, folder: `src/lib/content/${input.name}`, contract: input.contract,
+      ...(input.identifierField ? { identifierField: input.identifierField } : {})
+    },
     parse(file, source, languages) {
       const document = readDocument(file, source, languages);
       const body = (document.body || 'body' in input.contract.shape) ? { body: document.body } : {};
@@ -87,7 +100,8 @@ export function defineCollection<const Name extends string, Contract extends z.Z
       if (!metadata.title.trim() || !metadata.description.trim()) throw new Error(`Missing page metadata: ${file}`);
       return {
         id: `${input.name}:${document.key}`, collection: input.name, language: document.language,
-        slug: input.slug?.(data, document.key) ?? entrySlug(metadata.title, document.key),
+        // The file name is set once, when the entry is first saved, so editing a title never moves the address.
+        slug: input.slug?.(data, document.key) ?? entrySlug(document.key, document.key),
         metadata, content: input.present(data), shared: sharedContent(data, fields)
       };
     }
