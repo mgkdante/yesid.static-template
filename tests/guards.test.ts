@@ -2,6 +2,9 @@ import { expect, test } from 'bun:test';
 import { readdirSync } from 'node:fs';
 import { parse } from 'yaml';
 import { publish } from '../scripts/deploy.ts';
+import { PLACEHOLDER } from '../scripts/mark.ts';
+
+const clientMark = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect width="1" height="1"/></svg>';
 import { handleMissingFile, prerenderPolicy } from '../src/lib/prerender.ts';
 import { read } from './helpers.ts';
 
@@ -133,17 +136,26 @@ test('the failure message is written before anything that may be refused, which 
 test('the upload refuses the sample address before running anything', () => {
   const calls: string[][] = [];
   const run = (command: string[]) => { calls.push(command); return { exitCode: 0 }; };
-  expect(() => publish({ origin: 'https://example.invalid', slug: 'client.site' }, run)).toThrow('real origin');
+  expect(() => publish({ origin: 'https://example.invalid', slug: 'client.site' }, run, clientMark)).toThrow('real origin');
+  expect(calls).toEqual([]);
+});
+
+test('the upload refuses the sample mark before running anything', () => {
+  const calls: string[][] = [];
+  const run = (command: string[]) => { calls.push(command); return { exitCode: 0 }; };
+  // A sample, not the repository's file: a client's own mark must never fail this test.
+  const placeholder = `<svg xmlns="http://www.w3.org/2000/svg"><!-- ${PLACEHOLDER} --></svg>`;
+  expect(() => publish({ origin: 'https://client.example.test', slug: 'client.site' }, run, placeholder)).toThrow('sample mark');
   expect(calls).toEqual([]);
 });
 
 test('the upload names its Worker and reports a failure', () => {
   const calls: string[][] = [];
   const settings = { origin: 'https://client.example.test', slug: 'client.site' };
-  publish(settings, (command) => { calls.push(command); return { exitCode: 0 }; });
+  publish(settings, (command) => { calls.push(command); return { exitCode: 0 }; }, clientMark);
   expect(calls).toHaveLength(1);
   expect(calls[0].slice(-2)).toEqual(['--name', 'client-site']);
-  expect(() => publish(settings, () => ({ exitCode: 1 }))).toThrow('upload failed');
+  expect(() => publish(settings, () => ({ exitCode: 1 }), clientMark)).toThrow('upload failed');
 });
 
 test('a link or photo missing from Owner content warns, and any other build failure still stops', () => {

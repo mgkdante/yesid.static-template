@@ -18,7 +18,8 @@
     "test": "bun run build && bun test tests",
     "build": "node node_modules/vite/bin/vite.js build",
     "cms:config": "bun scripts/generate-cms-config.ts",
-    "content:format": "bun scripts/format-content.ts"
+    "content:format": "bun scripts/format-content.ts",
+    "icons": "bun scripts/build-icons.ts"
   },
   "dependencies": {
     "@yesid/content-contract": "https://github.com/mgkdante/yesid.content-contract/releases/download/v0.6.0/yesid-content-contract-0.6.0.tgz",
@@ -28,6 +29,7 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "2.6.2",
     "@sveltejs/adapter-static": "4.0.1",
     "@sveltejs/kit": "3.1.1",
     "@sveltejs/vite-plugin-svelte": "7.3.1",

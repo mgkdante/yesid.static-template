@@ -20,7 +20,7 @@ It must match `^[a-z0-9][a-z0-9.-]{0,62}$` and must not be one of the Login Site
 gh repo create <owner>/<repo> --private --template mgkdante/yesid.static-template --clone
 ```
 
-In `src/lib/config/site.ts`, set `slug`, `repository`, `origin`, the languages and the Business Facts. Set the Worker name in `wrangler.jsonc`. Then run these and push to `main`:
+In `src/lib/config/site.ts`, set `slug`, `repository`, `origin`, the languages and the Business Facts. Set the Worker name in `wrangler.jsonc`. Replace `static/favicon.svg` with the client's mark and run `bun run icons`, so the site keeps serving `/favicon.ico` from it; publishing refuses the placeholder mark. Then run these and push to `main`:
 
 ```sh
 bun install --frozen-lockfile
@@ -74,7 +74,7 @@ Use an IT account first, then have the Owner do it on their own phone.
 
 Publishing is set up separately in the README's "Start a client site". A failed build keeps the previous site up and opens an issue titled `Publishing failed`, assigned to the repository owner. IT handles the domain, then sets `origin` to it.
 
-After the first authorized publish, check that `<site>/admin/` leads to `login.yesid.dev/<slug>/` and that a save publishes by itself.
+After the first authorized publish, check that `<site>/admin/` leads to `login.yesid.dev/<slug>/`, that a save publishes by itself, and that `<site>/favicon.ico` returns the client's mark.
 
 ## When it doesn't work
 
