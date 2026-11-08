@@ -1,31 +1,70 @@
 import { expect, test } from 'bun:test';
 import { existsSync, readdirSync } from 'node:fs';
+import { Parser } from 'htmlparser2';
+import { parse } from 'svelte/compiler';
 import { assertPublishable, loginUrl, site, workerName } from '../src/lib/config/site.ts';
 import { escapeXml } from '../src/lib/seo.ts';
 import { fixedPages } from '../src/lib/site-map.ts';
 import { read, sampleCatalog } from './helpers.ts';
 const map = sampleCatalog().map;
 
-/** Start tags with their attributes. Quoted values may hold `>`; names are lowercased, bare values end at a space. */
-function startTags(markup: string) {
-  return [...markup.matchAll(/<([a-zA-Z][\w:-]*)((?:[^>"']|"[^"]*"|'[^']*')*)>/g)].map(([, name, rest]) => ({
-    name: name.toLowerCase(),
-    attributes: Object.fromEntries([...rest.matchAll(/([^\s"'=<>/]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g)]
-      .map(([, attribute, double, single, bare]) => [attribute.toLowerCase(), double ?? single ?? bare ?? '']))
-  }));
+/**
+ * Elements in built HTML as an HTML parser sees them: entities decoded, the first of duplicate attributes kept,
+ * and nothing read as a tag inside comments, scripts or styles.
+ */
+function htmlElements(html: string) {
+  const found: { name: string; attributes: Record<string, string> }[] = [];
+  const parser = new Parser({ onopentag: (name, attributes) => found.push({ name, attributes }) },
+    { decodeEntities: true, lowerCaseTags: true, lowerCaseAttributeNames: true });
+  parser.write(html);
+  parser.end();
+  return found;
 }
-/** Markup only: script and style bodies and comments are code or notes, not links. */
-const markupOf = (svelte: string) => svelte.replace(/<(script|style)\b[\s\S]*?<\/\1\s*>|<!--[\s\S]*?-->/gi, '');
+const modulePreloads = (html: string) => htmlElements(html).filter(({ name, attributes }) =>
+  name === 'link' && (attributes.rel ?? '').toLowerCase().split(/\s+/).includes('modulepreload'));
+
+/**
+ * Static `href` and `src` values written in a Svelte file's markup, read from Svelte's own parse tree:
+ * only attributes made of plain text count. Script, module and style blocks and expressions are never read.
+ */
+function staticLinks(source: string): string[] {
+  const links: string[] = [];
+  const visit = (node: unknown): void => {
+    if (Array.isArray(node)) return node.forEach(visit);
+    if (!node || typeof node !== 'object') return;
+    const current = node as Record<string, unknown>;
+    if (['RegularElement', 'SvelteElement', 'Component'].includes(String(current.type)) && Array.isArray(current.attributes)) {
+      for (const attribute of current.attributes as Record<string, unknown>[]) {
+        if (attribute.type !== 'Attribute' || !['href', 'src'].includes(String(attribute.name).toLowerCase())) continue;
+        const parts = Array.isArray(attribute.value) ? attribute.value : [attribute.value];
+        const texts = parts.filter((part): part is { type: 'Text'; data: string } => (part as { type?: string })?.type === 'Text');
+        if (texts.length === parts.length) links.push(texts.map(({ data }) => data).join(''));
+      }
+    }
+    for (const [key, value] of Object.entries(current)) if (key !== 'metadata') visit(value);
+  };
+  visit((parse(source, { modern: true }) as unknown as { fragment: unknown }).fragment);
+  return links;
+}
 
 test('the link and preload checks read real tags, not code or text', () => {
-  const svelte = `<script lang="ts">const src = '/a-variable/';</script>\n<!-- <a href="/a-note/"> -->\n<a href="/a/">a</a><a href='/b/'>b</a><a href=/c/>c</a><a href={x}>d</a><p>href="/text/"</p>`;
-  const hrefs = startTags(markupOf(svelte)).flatMap(({ attributes }) => attributes.href === undefined ? [] : [attributes.href]);
-  expect(hrefs).toEqual(['/a/', '/b/', '/c/', '{x}']);
-  const preloads = (html: string) => startTags(html).filter(({ name, attributes }) =>
-    name === 'link' && (attributes.rel ?? '').toLowerCase().split(/\s+/).includes('modulepreload')).length;
-  expect(preloads('<link rel = "modulepreload" href="/x.js">')).toBe(1);
-  expect(preloads("<link REL='preload ModulePreload' href=/x.js>")).toBe(1);
-  expect(preloads('<p>Ajoutez rel=&quot;modulepreload&quot; ici. rel="modulepreload"</p>')).toBe(0);
+  const svelte = [
+    `<script lang="ts">const src = '/a-variable/'; let x = '/b/';</script>`,
+    `<!-- <a href="/a-note/"> -->`,
+    `<a href="/a/">a</a><a href='/b/'>b</a><a href=/c/ >c</a><a href={x}>d</a><a href="/e/{x}">e</a>`,
+    `<a data-test={1 > 0} href="/after-expression/">f</a>`,
+    `<p>href="/text/"</p><p>{'<a href="/inside-an-expression/">x</a>'}</p>`,
+    `{#if x}<img src="/in-a-block.webp" alt="" />{/if}`,
+    `<style>a::after { content: '<a href="/in-css/">'; }</style>`
+  ].join('\n');
+  expect(staticLinks(svelte)).toEqual(['/a/', '/b/', '/c/', '/after-expression/', '/in-a-block.webp']);
+  expect(modulePreloads('<link rel = "modulepreload" href="/x.js">')).toHaveLength(1);
+  expect(modulePreloads("<link REL='preload ModulePreload' href=/x.js>")).toHaveLength(1);
+  expect(modulePreloads('<link rel="module&#112;reload" href="/x.js">')).toHaveLength(1);
+  expect(modulePreloads('<link rel="modulepreload" rel="stylesheet" href="/x.js">')).toHaveLength(1);
+  expect(modulePreloads('<p>Ajoutez rel=&quot;modulepreload&quot; ici. rel="modulepreload"</p>')).toHaveLength(0);
+  expect(modulePreloads('<!-- <link rel="modulepreload" href="/x.js"> -->')).toHaveLength(0);
+  expect(modulePreloads('<style>p::after { content: \'<link rel="modulepreload">\'; }</style>')).toHaveLength(0);
 });
 
 for (const row of map.rows) {
@@ -48,28 +87,24 @@ test('no built page runs JavaScript', () => {
   expect(pages.length).toBeGreaterThanOrEqual(map.rows.length);
   for (const file of pages) {
     const html = read(`build/${file}`);
-    const scripts = [...html.matchAll(/<script\b[^>]*>/gi)].map(([tag]) => tag).filter((tag) => tag !== '<script type="application/ld+json">');
+    // Real elements only, read by an HTML parser. Owner text is escaped, so its words never form a tag.
+    const scripts = htmlElements(html).filter(({ name, attributes }) =>
+      name === 'script' && !(attributes.type === 'application/ld+json' && attributes.src === undefined));
     expect({ file, scripts }).toEqual({ file, scripts: [] });
-    // Real elements only, with `rel` read as the browser does. Owner text is escaped, so its words never form a tag.
-    const preloads = startTags(html).filter(({ name, attributes }) =>
-      name === 'link' && (attributes.rel ?? '').toLowerCase().split(/\s+/).includes('modulepreload'));
-    expect({ file, preloads }).toEqual({ file, preloads: [] });
+    expect({ file, preloads: modulePreloads(html) }).toEqual({ file, preloads: [] });
   }
 });
 test('every link written in the site\'s own code leads to a built page', () => {
   // Reads the code, not the pages: a link an Owner wrote may go dead, and must never fail this test.
   const code = (readdirSync('src', { recursive: true }) as string[]).filter((file) => file.endsWith('.svelte'));
   expect(code.length).toBeGreaterThan(0);
-  // Static href and src attributes in markup, quoted or not. A value built in an expression ({...}) isn't read.
+  // Static href and src attributes in markup, from Svelte's parse tree. A value built in an expression isn't read.
   for (const file of code) {
-    for (const { attributes } of startTags(markupOf(read(`src/${file}`)))) {
-      for (const value of [attributes.href, attributes.src]) {
-        if (value === undefined || value.includes('{')) continue;
-        const local = value.startsWith(site.origin) ? value.slice(site.origin.length) : value;
-        if (!local.startsWith('/') || local.startsWith('//')) continue;
-        const path = local.replace(/[?#].*$/, '');
-        expect({ file, path, built: existsSync(`build${path}${path.endsWith('/') ? 'index.html' : ''}`) }).toEqual({ file, path, built: true });
-      }
+    for (const value of staticLinks(read(`src/${file}`))) {
+      const local = value.startsWith(site.origin) ? value.slice(site.origin.length) : value;
+      if (!local.startsWith('/') || local.startsWith('//')) continue;
+      const path = local.replace(/[?#].*$/, '');
+      expect({ file, path, built: existsSync(`build${path}${path.endsWith('/') ? 'index.html' : ''}`) }).toEqual({ file, path, built: true });
     }
   }
 });
