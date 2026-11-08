@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { date, group, line, list, paragraph } from '@yesid/content-contract';
 import { createCatalog } from '../src/lib/collection-catalog.ts';
 import { site, type SiteSettings } from '../src/lib/config/site.ts';
-import { defineCollection, loadCollections } from '../src/lib/content/collections.ts';
+import { defineCollection, loadCollections, type CollectionDefinition } from '../src/lib/content/collections.ts';
 
 const settings: SiteSettings = {
   ...site,
@@ -18,7 +18,7 @@ const resources = defineCollection({
 });
 const resourcePages = [{ id: 'resources', kind: 'fixed' as const, slugs: { fr: 'guides', en: 'resources', es: 'recursos' } }];
 const source = (name: string) => `---\nname: ${name}\nsummary: Help\n---\n`;
-const pathsOf = (sources: Record<string, string>, pages: Parameters<typeof createCatalog>[1] = resourcePages, definition = resources) => {
+const pathsOf = (sources: Record<string, string>, pages: Parameters<typeof createCatalog>[1] = resourcePages, definition: CollectionDefinition = resources) => {
   const { entries, map } = createCatalog(settings, pages, [definition], sources);
   return Object.fromEntries(entries.map(({ id, language }) => [`${id.split(':')[1]}.${language}`, map.path(id, language)]));
 };
@@ -90,21 +90,59 @@ test('an address comes from the file name, so a title edit or a new twin never m
     .toEqual({ 'one.en': '/en/resources/one/', 'one.fr': '/guides/one/' });
 });
 
-test('a file name that lands on a taken address gets a short code of its own, which other entries never change', () => {
+const coded = (prefix: string) => new RegExp(`^${prefix}--[0-9a-f]{16}/$`);
+
+test('a plain file name the site already uses gets a code of its own, the same in every language', () => {
   const home = { ...resources, listing: 'home' };
   const pages = [
     { id: 'home', kind: 'fixed' as const, slugs: { fr: '', en: '', es: '' } },
-    { id: 'about', kind: 'fixed' as const, slugs: { fr: 'a-propos', en: 'about', es: 'acerca-de' } }
+    { id: 'about', kind: 'fixed' as const, slugs: { fr: 'about', en: 'about-us', es: 'acerca-de' } }
   ];
-  const sources = { './resources/a-propos.fr.md': source('À propos'), './resources/admin.fr.md': source('admin'), './resources/en.fr.md': source('EN') };
+  const sources = {
+    './resources/a-propos.fr.md': source('À propos'), './resources/admin.fr.md': source('admin'), './resources/en.fr.md': source('EN'),
+    './resources/about.fr.md': source('About'), './resources/about.en.md': source('About')
+  };
   const paths = pathsOf(sources, pages, home);
-  for (const [key, path] of Object.entries(paths)) expect(path).toMatch(new RegExp(`^/${key.split('.')[0]}--[0-9a-f]{8}/$`));
-  // A plain file name the editor makes keeps its address; a name with capitals that normalizes onto it gets a code instead.
-  const capitals = pathsOf({ './resources/ete.fr.md': source('Été'), './resources/Ete.fr.md': source('Été') });
-  expect(capitals['ete.fr']).toBe('/guides/ete/');
-  expect(capitals['Ete.fr']).toMatch(/^\/guides\/ete--[0-9a-f]{8}\/$/);
-  // Adding or removing other entries doesn't change those codes.
-  expect(pathsOf({ ...sources, './resources/autre.fr.md': source('Autre') }, pages, home)).toMatchObject(paths);
+  expect(paths['a-propos.fr']).toBe('/a-propos/');
+  expect(paths['admin.fr']).toMatch(coded('/admin'));
+  expect(paths['en.fr']).toMatch(coded('/en'));
+  // Only French has a Fixed Page at `about`, yet both languages get the same coded address.
+  expect(paths['about.fr']).toMatch(coded('/about'));
+  expect(paths['about.en']).toBe(`/en${paths['about.fr']}`);
+});
+
+test('no entry moves when another is added, renamed or removed', () => {
+  const long = 'a'.repeat(80);
+  const keys = ['hello', 'Hello', 'ete', 'Été', 'nouvelles', 'nouvelles-1', 'a~b', 'a-b', `${long}z`, `${long}b`, long, 'x--y', 'admin'];
+  const all = Object.fromEntries(keys.map((key) => [`./resources/${key}.fr.md`, source('Même titre')]));
+  const full = pathsOf(all);
+  expect(new Set(Object.values(full)).size).toBe(keys.length);
+  for (const key of keys) {
+    const { [`./resources/${key}.fr.md`]: _gone, ...rest } = all;
+    const { [`${key}.fr`]: _removed, ...expected } = full;
+    expect(pathsOf(rest)).toEqual(expected);
+  }
+  // The pairs the review used: a capitalised name, and two long names, each alone and with its neighbour.
+  expect(pathsOf({ './resources/Hello.fr.md': source('x') })['Hello.fr']).toBe(full['Hello.fr']);
+  expect(pathsOf({ [`./resources/${long}z.fr.md`]: source('x') })[`${long}z.fr`]).toBe(full[`${long}z.fr`]);
+  expect(full['hello.fr']).toBe('/guides/hello/');
+  expect(full['Hello.fr']).toMatch(coded('/guides/hello'));
+  expect(full['x--y.fr']).toMatch(coded('/guides/x-y'));
+});
+
+test('a slug callback chooses addresses from content: normalized, capped, and coded when they collide', () => {
+  const titled = defineCollection({
+    name: 'notes', label: 'Notes', listing: 'resources', contract: z.strictObject({ title: line('Title') }),
+    metadata: (data) => ({ title: data.title, description: data.title }), present: (data) => data, slug: (data) => data.title
+  });
+  const note = (title: string) => `---\ntitle: '${title}'\n---\n`;
+  const paths = pathsOf({ './notes/one.fr.md': note('Été à Montréal'), './notes/two.fr.md': note('x'.repeat(200)) }, resourcePages, titled);
+  expect(paths['one.fr']).toBe('/guides/ete-a-montreal/');
+  expect(new TextEncoder().encode(paths['two.fr']!.split('/').at(-2)!).length).toBeLessThanOrEqual(80);
+  const twins = pathsOf({ './notes/one.fr.md': note('Same'), './notes/two.fr.md': note('Same') }, resourcePages, titled);
+  expect(twins['one.fr']).toMatch(coded('/guides/same'));
+  expect(twins['two.fr']).toMatch(coded('/guides/same'));
+  expect(twins['one.fr']).not.toBe(twins['two.fr']);
 });
 
 test('every address stays short enough to be a folder name, twins included', () => {
@@ -113,6 +151,8 @@ test('every address stays short enough to be a folder name, twins included', () 
   const paths = Object.values(pathsOf(long)) as string[];
   expect(new Set(paths).size).toBe(4);
   for (const path of paths) expect(bytes(path.split('/').at(-2)!)).toBeLessThanOrEqual(80);
+  expect(() => createCatalog(settings, [{ id: 'resources', kind: 'fixed', slugs: { fr: 'g'.repeat(81), en: 'r', es: 'r' } }], [resources], {}))
+    .toThrow('over 80 bytes');
   const unicode = pathsOf({ [`./resources/${'日本語'.repeat(100)}.fr.md`]: source('x') })[`${'日本語'.repeat(100)}.fr`]!;
   const segment = decodeURIComponent(unicode.split('/').at(-2)!);
   expect(bytes(segment)).toBeLessThanOrEqual(80);

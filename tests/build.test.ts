@@ -6,6 +6,28 @@ import { fixedPages } from '../src/lib/site-map.ts';
 import { read, sampleCatalog } from './helpers.ts';
 const map = sampleCatalog().map;
 
+/** Start tags with their attributes. Quoted values may hold `>`; names are lowercased, bare values end at a space. */
+function startTags(markup: string) {
+  return [...markup.matchAll(/<([a-zA-Z][\w:-]*)((?:[^>"']|"[^"]*"|'[^']*')*)>/g)].map(([, name, rest]) => ({
+    name: name.toLowerCase(),
+    attributes: Object.fromEntries([...rest.matchAll(/([^\s"'=<>/]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g)]
+      .map(([, attribute, double, single, bare]) => [attribute.toLowerCase(), double ?? single ?? bare ?? '']))
+  }));
+}
+/** Markup only: script and style bodies and comments are code or notes, not links. */
+const markupOf = (svelte: string) => svelte.replace(/<(script|style)\b[\s\S]*?<\/\1\s*>|<!--[\s\S]*?-->/gi, '');
+
+test('the link and preload checks read real tags, not code or text', () => {
+  const svelte = `<script lang="ts">const src = '/a-variable/';</script>\n<!-- <a href="/a-note/"> -->\n<a href="/a/">a</a><a href='/b/'>b</a><a href=/c/>c</a><a href={x}>d</a><p>href="/text/"</p>`;
+  const hrefs = startTags(markupOf(svelte)).flatMap(({ attributes }) => attributes.href === undefined ? [] : [attributes.href]);
+  expect(hrefs).toEqual(['/a/', '/b/', '/c/', '{x}']);
+  const preloads = (html: string) => startTags(html).filter(({ name, attributes }) =>
+    name === 'link' && (attributes.rel ?? '').toLowerCase().split(/\s+/).includes('modulepreload')).length;
+  expect(preloads('<link rel = "modulepreload" href="/x.js">')).toBe(1);
+  expect(preloads("<link REL='preload ModulePreload' href=/x.js>")).toBe(1);
+  expect(preloads('<p>Ajoutez rel=&quot;modulepreload&quot; ici. rel="modulepreload"</p>')).toBe(0);
+});
+
 for (const row of map.rows) {
   test(`built ${row.path} is complete HTML with correct SEO and languages`, () => {
     // The file on disk has the decoded name, for addresses in any alphabet.
@@ -28,8 +50,9 @@ test('no built page runs JavaScript', () => {
     const html = read(`build/${file}`);
     const scripts = [...html.matchAll(/<script\b[^>]*>/gi)].map(([tag]) => tag).filter((tag) => tag !== '<script type="application/ld+json">');
     expect({ file, scripts }).toEqual({ file, scripts: [] });
-    // Real elements only. Owner text is escaped, so its words can never form a tag and never trip this.
-    const preloads = [...html.matchAll(/<link\b[^>]*\brel=["']?modulepreload\b[^>]*>/gi)].map(([tag]) => tag);
+    // Real elements only, with `rel` read as the browser does. Owner text is escaped, so its words never form a tag.
+    const preloads = startTags(html).filter(({ name, attributes }) =>
+      name === 'link' && (attributes.rel ?? '').toLowerCase().split(/\s+/).includes('modulepreload'));
     expect({ file, preloads }).toEqual({ file, preloads: [] });
   }
 });
@@ -37,12 +60,16 @@ test('every link written in the site\'s own code leads to a built page', () => {
   // Reads the code, not the pages: a link an Owner wrote may go dead, and must never fail this test.
   const code = (readdirSync('src', { recursive: true }) as string[]).filter((file) => file.endsWith('.svelte'));
   expect(code.length).toBeGreaterThan(0);
-  const origin = site.origin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  // Double-quoted, single-quoted or unquoted. A link built in an expression ({...}) isn't a literal and isn't read.
-  const links = new RegExp(`\\b(?:href|src)=["']?(?:${origin})?(/[^"'#?{\\s>]*)`, 'g');
+  // Static href and src attributes in markup, quoted or not. A value built in an expression ({...}) isn't read.
   for (const file of code) {
-    for (const [, path] of read(`src/${file}`).matchAll(links)) {
-      expect({ file, path, built: existsSync(`build${path}${path.endsWith('/') ? 'index.html' : ''}`) }).toEqual({ file, path, built: true });
+    for (const { attributes } of startTags(markupOf(read(`src/${file}`)))) {
+      for (const value of [attributes.href, attributes.src]) {
+        if (value === undefined || value.includes('{')) continue;
+        const local = value.startsWith(site.origin) ? value.slice(site.origin.length) : value;
+        if (!local.startsWith('/') || local.startsWith('//')) continue;
+        const path = local.replace(/[?#].*$/, '');
+        expect({ file, path, built: existsSync(`build${path}${path.endsWith('/') ? 'index.html' : ''}`) }).toEqual({ file, path, built: true });
+      }
     }
   }
 });

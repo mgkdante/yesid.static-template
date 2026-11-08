@@ -7,6 +7,8 @@ export interface Entry<Name extends string = string, Content = unknown> {
   readonly collection: Name;
   readonly language: string;
   readonly slug: string;
+  /** True when the address comes from the file name; false when a collection's `slug` callback derives it from content. */
+  readonly fromFileName: boolean;
   readonly metadata: { readonly title: string; readonly description: string; readonly image?: string };
   readonly content: Content;
   readonly shared: unknown;
@@ -101,7 +103,9 @@ export function defineCollection<const Name extends string, Contract extends z.Z
       return {
         id: `${input.name}:${document.key}`, collection: input.name, language: document.language,
         // The file name is set once, when the entry is first saved, so editing a title never moves the address.
-        slug: input.slug?.(data, document.key) ?? entrySlug(document.key, document.key),
+        // A callback's text is normalized like a file name, so Owner wording can't produce an invalid or over-long address.
+        slug: entrySlug(input.slug?.(data, document.key) ?? document.key, document.key),
+        fromFileName: !input.slug,
         metadata, content: input.present(data), shared: sharedContent(data, fields)
       };
     }
