@@ -4,7 +4,7 @@ import { contentGroups } from '../src/lib/content/cms.ts';
 import { loadCollections } from '../src/lib/content/collections.ts';
 import { collections } from '../src/lib/content/registry.ts';
 
-// A hand-kept copy of CONTENT_FILES in the Login Site's src/sites.ts, whose repository this one can't read.
+// A hand-kept copy of CONTENT_FILES in Login's src/sites.ts, whose repository this one can't read.
 // It can't notice when those rules change, so update it by hand when they do.
 const loginRules = [
   /^src\/lib\/content\/[\w.-]+\.json$/,
@@ -26,7 +26,7 @@ test('every registered collection can be saved', () => {
     expect(canSave(`${cms.folder}/a~b.${site.defaultLanguage}.md`)).toBe(true);
   }
 });
-test('a new collection can be saved without a Login Site change, and only one level deep', () => {
+test('a new collection can be saved without a Login change, and only one level deep', () => {
   expect(canSave('src/lib/content/case-studies/entry.fr.md')).toBe(true);
   expect(canSave('src/lib/content/case-studies/deep/entry.fr.md')).toBe(false);
   expect(canSave('src/lib/content/Case-Studies/entry.fr.md')).toBe(false);

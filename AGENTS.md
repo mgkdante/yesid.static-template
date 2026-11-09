@@ -16,4 +16,4 @@ Keep Business Facts and settings in `src/lib/config/site.ts`. Fixed Page identit
 
 Custom Design belongs in `src/lib/sections/`; keep routing, content and SEO independent. Render semantic HTML; this starter has no visual design and imports no design-system UI, tokens or motion. Markdown must be sanitized at build time.
 
-Keep the repository private. Never read or commit secrets. Never deploy, create Cloudflare resources, modify neighboring repositories or contact the Login Site without task-specific authorization. Publishing stays gated by `DEPLOY_ENABLED`. Saved content paths must match the Login Site's file rules, owned in its repository. Connecting a client: `docs/connect-a-client.md`.
+Keep the repository private. Never read or commit secrets. Never deploy, create Cloudflare resources, modify neighboring repositories or contact Login without task-specific authorization. Publishing stays gated by `DEPLOY_ENABLED`. Saved content paths must match Login's file rules, owned in its repository. Connecting a client: `docs/connect-a-client.md`.
