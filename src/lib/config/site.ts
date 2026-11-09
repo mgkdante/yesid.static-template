@@ -28,7 +28,7 @@ export interface SiteIcon {
   readonly sizes?: string;
 }
 export interface SiteSettings {
-  /** This site's name on the Login Site. */
+  /** This site's name on Login. */
   readonly slug: string;
   /** `owner/name` of this site's GitHub repository. */
   readonly repository: string;

@@ -46,9 +46,10 @@ test('every Fixed Page has its editor entry, and the groups come before the fold
   for (const id of fixedPageIds) expect(inEditor).toContain(id);
   expect(createCmsConfig().collections?.map(({ name }) => name)).toEqual([...contentGroups, ...collections].map(({ name }) => name));
 });
-test('the site slug is one the Login Site can serve', () => {
-  // Mirrors validSlug in the Login Site's src/sites.ts. A reserved word there is one of its own paths.
-  const reserved = ['auth', 'api', 'admin', 'login', 'editor', 'account', 'privacy', 'terms', 'legal'];
+test('the site slug is one Login can serve', () => {
+  // Mirrors validSlug in Login's src/sites.ts. A reserved word there is one of its own paths.
+  // Login also refuses a retired slug, which it keeps in its database; no template test can see that.
+  const reserved = ['auth', 'api', 'admin', 'login', 'editor', 'account', 'privacy', 'terms', 'legal', 'relay'];
   expect(site.slug).toMatch(/^[a-z0-9][a-z0-9.-]{0,62}$/);
   expect(reserved).not.toContain(site.slug);
 });
