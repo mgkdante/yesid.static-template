@@ -88,3 +88,5 @@ No `.env.example` is needed. Deployment credentials belong only in GitHub secret
 `@yesid/i18n-core` and `@yesid/seo-kit` from `yesid.design` are deliberately not installed: the Site Map already owns routing, and seo-kit brings token and image-generation peers this Foundation does not need.
 
 Potential future packages, after another client proves the interfaces: the Site Map and translation availability model, safe Markdown/post ingestion, facts-only SEO and static-output verification helpers. Nothing is extracted here. The Content Contract is already a released package.
+
+Administrators can publish a specific SHA or branch with `gh workflow run deploy-now.yml -R <owner>/<repo> -f ref=<sha>`. This bypasses the automatic deployment gate, requires both Cloudflare repository secrets, and shares the automatic deployment queue.
