@@ -28,7 +28,7 @@ Login also refuses a retired slug: the slug of any Site that has left Login is n
 ## 2. Create the repository
 
 ```sh
-gh repo create <owner>/<repo> --private --template mgkdante/yesid.static-template --clone
+gh repo create <owner>/<repo> --private --template yesid-dev/yesid.static-template --clone
 ```
 
 The repository's name must not be one of the Operator's own projects: Login's `scripts/new-client.ts` refuses any name starting with `yesid.`, and `transit` and `yesid-portfolio`.
@@ -100,7 +100,7 @@ After the first authorized publish, check that `<site>/admin/` leads to `login.y
 
 ## Optional: try a test copy on staging
 
-A test copy of this template can point its editor at Login's staging service. In `createCmsConfig` (`src/lib/content/cms.ts`), set `loginOrigin: 'https://staging.login.yesid.dev'` and add `branch: 'staging'`, then run `bun run cms:config` and commit `cms/config.yml` on that branch, as the `staging` branch of `mgkdante/yesid-login-sandbox` does. Only the Operator's sandbox repository is installed on the staging App, so a Client's repository always uses production.
+A test copy of this template can point its editor at Login's staging service. In `createCmsConfig` (`src/lib/content/cms.ts`), set `loginOrigin: 'https://staging.login.yesid.dev'` and add `branch: 'staging'`, then run `bun run cms:config` and commit `cms/config.yml` on that branch, as the `staging` branch of `yesid-dev/yesid-login-sandbox` does. Only the Operator's sandbox repository is installed on the staging App, so a Client's repository always uses production.
 
 ## Offboarding
 

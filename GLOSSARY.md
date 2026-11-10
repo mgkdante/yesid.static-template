@@ -1,6 +1,6 @@
 # Language
 
-Terms used across this repository. Terms about Login, its people and its Sites follow [Login's glossary](https://github.com/mgkdante/yesid.login/blob/main/GLOSSARY.md), which owns them.
+Terms used across this repository. Terms about Login, its people and its Sites follow [Login's glossary](https://github.com/yesid-dev/yesid.login/blob/main/GLOSSARY.md), which owns them.
 
 ## Login and its people
 

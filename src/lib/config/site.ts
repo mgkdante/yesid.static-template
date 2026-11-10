@@ -42,7 +42,7 @@ export interface SiteSettings {
 
 export const site: SiteSettings = {
   slug: 'yesid.static-template',
-  repository: 'mgkdante/yesid.static-template',
+  repository: 'yesid-dev/yesid.static-template',
   origin: 'https://example.invalid',
   languages: [
     { code: 'fr', label: 'Français', ogLocale: 'fr_CA' },
