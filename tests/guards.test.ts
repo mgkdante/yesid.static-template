@@ -156,7 +156,7 @@ test('the upload refuses the starter\'s placeholder artwork, however its file is
 });
 
 // Only in the starter: every client sets its own repository, so this can never run against a client's mark.
-test.if(site.repository === 'mgkdante/yesid.static-template')('the starter itself still carries the placeholder that publishing refuses', () => {
+test.if(site.repository === 'yesid-dev/yesid.static-template')('the starter itself still carries the placeholder that publishing refuses', () => {
   expect(() => publish({ origin: 'https://client.example.test', slug: 'client.site' }, () => ({ exitCode: 0 }), readFileSync('static/favicon.ico'))).toThrow('sample mark');
 });
 

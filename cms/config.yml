@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: mgkdante/yesid.static-template
+  repo: yesid-dev/yesid.static-template
   branch: main
   base_url: https://login.yesid.dev
   auth_endpoint: auth/popup
