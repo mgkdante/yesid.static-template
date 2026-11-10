@@ -5,7 +5,7 @@
     "": {
       "name": "yesid.static-template",
       "dependencies": {
-        "@yesid/content-contract": "https://github.com/mgkdante/yesid.content-contract/releases/download/v0.6.1/yesid-content-contract-0.6.1.tgz",
+        "@yesid/content-contract": "https://github.com/yesid-dev/yesid.content-contract/releases/download/v0.6.1/yesid-content-contract-0.6.1.tgz",
         "marked": "18.1.3",
         "sanitize-html": "2.18.1",
         "yaml": "2.9.1",
@@ -255,7 +255,7 @@
 
     "@types/sanitize-html": ["@types/sanitize-html@2.16.2", "", { "dependencies": { "htmlparser2": "^12.0" } }, "sha512-kuAbgDCFv418flrp3z4o/4ufLA/5ovmXRH0L419iZCPGO7w00znjeDI5Wy/KZWNIBpDQc7hucCK+J5almB6FyA=="],
 
-    "@yesid/content-contract": ["@yesid/content-contract@https://github.com/mgkdante/yesid.content-contract/releases/download/v0.6.1/yesid-content-contract-0.6.1.tgz", { "peerDependencies": { "zod": "^4.6.0" } }, "sha512-+BHG3aWUF4wSNm7XpzjoNvwO1a/pB30C9pfrII3xo5WR8xLl0mRaIBzXnIH4XcgS9R4xTMkDEBl9AUxpMLLLqg=="],
+    "@yesid/content-contract": ["@yesid/content-contract@https://github.com/yesid-dev/yesid.content-contract/releases/download/v0.6.1/yesid-content-contract-0.6.1.tgz", { "peerDependencies": { "zod": "^4.6.0" } }, "sha512-+BHG3aWUF4wSNm7XpzjoNvwO1a/pB30C9pfrII3xo5WR8xLl0mRaIBzXnIH4XcgS9R4xTMkDEBl9AUxpMLLLqg=="],
 
     "acorn": ["acorn@8.19.0", "", { "bin": { "acorn": "bin/acorn" } }, "sha512-oJlA3XiRm7Cyk6qFD2Jn8ak9B7jSy0qy00ADO3+8dpT0LSjFihQYv4C02LFCSYJV3Q37xYwwRy5m+IpIiUzqWw=="],
 
